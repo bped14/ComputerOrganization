@@ -11,6 +11,9 @@ IDEX_Reg IDEX;
 EXMEM_Reg EXMEM;
 MEMWB_Reg MEMWB;
 
+//intialize program counter
+int pc = 0;
+
 //DEFINE REGISTERS
 unsigned long reg[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
@@ -369,11 +372,13 @@ void executeDetermination(){
     //R Type
     if(IFID.type == 3){
         //decide what to do with r type inst based on its funct
-        //GOING IN THE ORDER LISTEN ON THE GREEN SHEET FIRST PAGE
         switch(IFID.funct){
             //add
             case add :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -384,6 +389,9 @@ void executeDetermination(){
             //add unsigned
             case addu :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -394,6 +402,9 @@ void executeDetermination(){
             //and
             case and :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -408,6 +419,9 @@ void executeDetermination(){
             //nor
             case nor :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -418,6 +432,9 @@ void executeDetermination(){
             //or
             case or :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -428,6 +445,9 @@ void executeDetermination(){
             //slt - set less than
             case slt :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -438,6 +458,9 @@ void executeDetermination(){
             //sltu - set less than unsigned
             case sltu :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -448,6 +471,9 @@ void executeDetermination(){
             //sll - shift left logical
             case sll :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -460,6 +486,9 @@ void executeDetermination(){
             //srl - shift right logical
             case srl :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -472,6 +501,9 @@ void executeDetermination(){
             //sub - subtract
             case sub :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -483,6 +515,9 @@ void executeDetermination(){
             //subu - subtract unsigned
             case subu :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -494,6 +529,9 @@ void executeDetermination(){
             //movn - move conditional on not zero
             case movn :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -505,6 +543,9 @@ void executeDetermination(){
             //movz - move conditional on zero
             case movz :
                 IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.Rd = IFID.Rd;
@@ -531,7 +572,10 @@ void executeDetermination(){
         switch(IFID.Opcode){
             //beq
             case beq :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = beq;
@@ -540,7 +584,10 @@ void executeDetermination(){
                 break;
             //bne
             case bne :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = bne;
@@ -549,7 +596,10 @@ void executeDetermination(){
                 break;
             //addi
             case addi :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = addi;
@@ -558,7 +608,10 @@ void executeDetermination(){
                 break;
             //addiu
             case addiu :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = addiu;
@@ -567,7 +620,10 @@ void executeDetermination(){
                 break;
             //slti
             case slti :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = slti;
@@ -576,7 +632,10 @@ void executeDetermination(){
                 break;
                 //sltiu
             case sltiu :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = sltiu;
@@ -585,7 +644,10 @@ void executeDetermination(){
                 break;
                 //andi
             case andi :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = andi;
@@ -594,7 +656,10 @@ void executeDetermination(){
                 break;
             //ori
             case ori :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = ori;
@@ -603,7 +668,10 @@ void executeDetermination(){
                 break;
             //xori
             case xori :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = xori;
@@ -612,7 +680,10 @@ void executeDetermination(){
                 break;
             //lui
             case lui :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = true;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = lui;
@@ -621,7 +692,10 @@ void executeDetermination(){
                 break;
             //lb
             case lb :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = true;
+                IDEX.memtoreg = true;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = lb;
@@ -630,7 +704,10 @@ void executeDetermination(){
                 break;
             //lh
             case lh :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = true;
+                IDEX.memtoreg = true;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = lh;
@@ -639,7 +716,10 @@ void executeDetermination(){
                 break;
             //lw
             case lw :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = true;
+                IDEX.memtoreg = true;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = lw;
@@ -648,7 +728,10 @@ void executeDetermination(){
                 break;
             //lbu
             case lbu :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = true;
+                IDEX.memtoreg = true;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = lbu;
@@ -657,7 +740,10 @@ void executeDetermination(){
                 break;
             //lhu
             case lhu :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = true;
+                IDEX.memtoreg = true;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = lhu;
@@ -666,7 +752,10 @@ void executeDetermination(){
                 break;
             //sb
             case sb :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = true;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = sb;
@@ -675,7 +764,10 @@ void executeDetermination(){
                 break;
             //sh
             case sh :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = true;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = sh;
@@ -685,7 +777,10 @@ void executeDetermination(){
 
             //sw
             case sw :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = true;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = sw;
@@ -695,7 +790,10 @@ void executeDetermination(){
 
             //bgtz
             case bgtz :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = bgtz;
@@ -705,7 +803,10 @@ void executeDetermination(){
 
             //bltz
             case bltz :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = true;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = bltz;
@@ -715,7 +816,10 @@ void executeDetermination(){
 
             //blez
             case blez :
-                //IDEX.regWrite = true;
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = true;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = blez;
@@ -912,6 +1016,8 @@ void WB(){
 int main(){
 
     Initialize_Simulation_Memory();
+
+    printf("%.4x\n",memory[1]);
 
     IF(0xffffffff);
     printf("type\n");

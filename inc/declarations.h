@@ -3,6 +3,11 @@
 #ifndef DECLARATIONS_H
 #define DECLARATIONS_H
 
+
+//register declarations
+
+#define
+
 /* need
 
 
@@ -76,8 +81,9 @@ typedef struct{
 
 typedef struct{
     bool regWrite;//regWrite
-    //memread
-    //memtoreg
+    bool memread;
+    bool memtoreg;
+    bool memwrite;
     unsigned int ALUop;
     unsigned int Rd; //destination reg
     unsigned int Rs; //regRs
@@ -93,8 +99,9 @@ typedef struct{
 
 typedef struct{
     bool regWrite;//regWrite
-    //memread
-    //memtoreg
+    bool memread;
+    bool memtoreg;
+    bool memwrite;
     unsigned int ALUop;
     unsigned long ALUresult;
     unsigned int Rd; //destination reg r type
@@ -106,8 +113,8 @@ typedef struct{
 } EXMEM_Reg;
 
 typedef struct{
-    bool regWrite;//regWrite
-    //memtoreg
+    bool regWrite;
+    bool memtoreg;
     unsigned int DataMemResult;
     unsigned long ALUresult;
     unsigned long WBRegister;
