@@ -1,6 +1,6 @@
 #include "Load_Program.h"
 
-#define memory_size 1200;
+#define memory_size 1200
 
 unsigned int memory[memory_size];
 
@@ -498,7 +498,7 @@ unsigned int program_image[memory_size] = {
 	0x00f0f000,
 	0x0f0f0000,
 	0x0000e000,
-}
+};
 
 
 void Initialize_Simulation_Memory(void){

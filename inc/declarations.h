@@ -105,6 +105,15 @@ typedef struct{
 
 } EXMEM_Reg;
 
+typedef struct{
+    bool regWrite;//regWrite
+    //memtoreg
+    unsigned int DataMemResult;
+    unsigned long ALUresult;
+    unsigned long WBRegister;
+
+} MEMWB_Reg;
+
 
 
 

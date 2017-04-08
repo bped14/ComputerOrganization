@@ -1,19 +1,15 @@
 #include "declarations.h"
+#include "Load_Program.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+
 
 //create the 4 register structs
 IFID_Reg IFID;
 IDEX_Reg IDEX;
 EXMEM_Reg EXMEM;
-//MEMWB
-
-//some test machine code
-unsigned long efoff = 0xFFFFFFFF;
-unsigned long testRtype = 0x02116022;
-unsigned long testItype = 0x2088FF9C;
-unsigned long testJtype = 0x0BF0F0F0;
+MEMWB_Reg MEMWB;
 
 //DEFINE REGISTERS
 unsigned long reg[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -915,7 +911,9 @@ void WB(){
 
 int main(){
 
-    IF(testRtype);
+    Initialize_Simulation_Memory();
+
+    IF(0xffffffff);
     printf("type\n");
     printInBinary( (uint32_t) IFID.type , 0 );
     printf("Opcode\n");
