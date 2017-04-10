@@ -12,10 +12,10 @@ EXMEM_Reg EXMEM;
 MEMWB_Reg MEMWB;
 
 //intialize program counter
-int pc = 0;
+unsigned long pc = 0;
 
 //DEFINE REGISTERS
-unsigned long reg[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+unsigned long reg[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 //tool used for debugging
 void printInBinary(uint32_t num, int bit){
@@ -46,22 +46,29 @@ void printInBinary(uint32_t num, int bit){
 ╚═╝  ╚═╝╚══════╝ ╚═════╝
 *******************************************************************************/
 
-/********************J_TYPE_FUNCTIONS*******************
+/********************J_TYPE_FUNCTIONS*******************/
 
-j
+void jump(unsigned long jumpAddr){
+    pc = pc & 0xf0000000;
+    pc = (pc >> 2) | (jumpAddr);
+    pc++;
+}
 
-jal
-
-*/
+void jumpAligned(unsigned long jumpAddr){
+    reg[ra] = pc + 2;
+    pc = pc & 0xf0000000;
+    pc = (pc >> 2) | (jumpAddr);
+    pc++;
+}
 
 /********************I_TYPE_FUNCTIONS*******************/
-/*
 
-beq
+//beq
 
-bne
 
-*/
+//bne
+
+
 
 unsigned long addImmed(unsigned int rs, short int immed){
     unsigned long result;
@@ -195,11 +202,13 @@ unsigned long shiftRightLogical(unsigned int rt, unsigned int shamt){
     result = rt >> shamt;
     return result;
 }
-/*
-void jumpRegister(){
 
+//DONT FORGET TO TEST IF RS NEED TO BE SHIFTED RIGHT 2 TO ACCOUNT FOR WORD memory
+void jumpRegister(unsigned long rs){
+    pc = rs;
+    return;
 }
-*/
+
 
 unsigned long addition(unsigned int rs, unsigned int rt){
     unsigned long result;
@@ -414,8 +423,16 @@ void executeDetermination(){
                 break;
             //jr jump register
             case jr :
-                //PC = R[rs] - this is what it says on the green sheet
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
+                rsRegDetermination(IFID.Rs);
+                IDEX.Rd = IFID.Rd;
+                IDEX.shamt = IFID.shamt;
+                IDEX.ALUop = jr;
                 break;
+
             //nor
             case nor :
                 IDEX.regWrite = true;
@@ -561,7 +578,25 @@ void executeDetermination(){
     else if(IFID.type == 1){
         //decide what to do with the J type inst based on its opcode
         switch(IFID.Opcode){
+            //jump
+            case j :
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
+                IDEX.jumpaddress = IFID.jumpaddress;
+                IDEX.ALUop = j;
+                break;
 
+            //jump aligned
+            case jal :
+                IDEX.regWrite = false;
+                IDEX.memread = false;
+                IDEX.memtoreg = false;
+                IDEX.memwrite = false;
+                IDEX.jumpaddress = IFID.jumpaddress;
+                IDEX.ALUop = jal;
+                break;
 
         }
 
@@ -837,31 +872,27 @@ void execute(){
     printf("execute\n");
 
     //switch on type
-    switch(IDEX.type){
+    switch(EXMEM.type){
         //j type instuction set
         case 1:
 
             //determine the operation
-            switch(IDEX.ALUop){
+            switch(EXMEM.ALUop){
 
-                //jump shit
-                /*
-                case jr :
-
+                case j :
+                    jump(EXMEM.jumpaddress);
                     break;
 
                 case jal:
-
+                    jumpAligned(EXMEM.jumpaddress);
                     break;
-                */
-
             }
 
         //i type
         case 2:
 
             //determine the operation
-            switch(IDEX.ALUop){
+            switch(EXMEM.ALUop){
 
 
 
@@ -871,75 +902,80 @@ void execute(){
         case 3:
 
             //determine the operation
-            switch(IDEX.ALUop){
+            switch(EXMEM.ALUop){
                 //shift left logical
                 case sll :
-                    EXMEM.ALUresult = shiftLeftLogical(IDEX.RtValue, IDEX.shamt);
+                    EXMEM.ALUresult = shiftLeftLogical(EXMEM.RtValue, EXMEM.shamt);
                     break;
 
                 //shift right logical
                 case srl :
-                    EXMEM.ALUresult = shiftRightLogical(IDEX.RtValue, IDEX.shamt);
+                    EXMEM.ALUresult = shiftRightLogical(EXMEM.RtValue, EXMEM.shamt);
+                    break;
+
+                //jr
+                case jr :
+                    jumpRegister(EXMEM.RsValue);
                     break;
 
                 //add
                 case add :
-                    EXMEM.ALUresult = addition(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = addition(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //add unsigned
                 case addu :
-                    EXMEM.ALUresult = addUnsigned(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = addUnsigned(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //subtract
                 case sub :
-                    EXMEM.ALUresult = subtract(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = subtract(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //subtract unsigned
                 case subu :
-                    EXMEM.ALUresult = subtractUnsigned(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = subtractUnsigned(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //and
                 case and :
-                    EXMEM.ALUresult = andOperation(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = andOperation(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //or
                 case or :
-                    EXMEM.ALUresult = orOperation(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = orOperation(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //xor
                 case xor :
-                    EXMEM.ALUresult = xorOperation(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = xorOperation(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //nor
                 case nor :
-                    EXMEM.ALUresult = norOperation(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = norOperation(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //set less than
                 case slt :
-                    EXMEM.ALUresult = setLessThan(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = setLessThan(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //set less than unsigned
                 case sltu :
-                    EXMEM.ALUresult = setLessThanUnsigned(IDEX.RsValue, IDEX.RtValue);
+                    EXMEM.ALUresult = setLessThanUnsigned(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //move non zero
                 case movn :
-                    //EXMEM.ALUresult = moveNonZero(IDEX.RsValue, IDEX.RtValue);
+                    //EXMEM.ALUresult = moveNonZero(EXMEM.RsValue, EXMEM.RtValue);
                     break;
 
                 //move zero
                 case movz :
-                    //EXMEM.ALUresult = moveZero(IDEX.RsValue, IDEX.RtValue);
+                    //EXMEM.ALUresult = moveZero(EXMEM.RsValue, EXMEM.RtValue);
                     break;
             }
 
@@ -978,9 +1014,16 @@ void ID(){
 
 void EX(){
     EXMEM.regWrite = IDEX.regWrite;
+    EXMEM.memread = IDEX.memread;
+    EXMEM.memtoreg = IDEX.memtoreg;
+    EXMEM.memwrite = IDEX.memwrite;
     EXMEM.ALUop = IDEX.ALUop;
+    EXMEM.shamt = IDEX.shamt;
     EXMEM.Rd = IDEX.Rd;
     EXMEM.Rt = IDEX.Rt;
+    EXMEM.RsValue = IDEX.RsValue;
+    EXMEM.RtValue = IDEX.RtValue;
+    EXMEM.jumpaddress = IDEX.jumpaddress;
     EXMEM.immediate = IDEX.immediate;
     EXMEM.PCinc = IDEX.PCinc;
     EXMEM.type = IDEX.type;
@@ -1016,10 +1059,12 @@ void WB(){
 int main(){
 
     Initialize_Simulation_Memory();
+    pc = 0xa0000000;
+    reg[ra] = 0xa;
 
     printf("%.4x\n",memory[1]);
 
-    IF(0xffffffff);
+    IF(0x0ffffffe);
     printf("type\n");
     printInBinary( (uint32_t) IFID.type , 0 );
     printf("Opcode\n");
@@ -1082,6 +1127,10 @@ int main(){
     printInBinary( (uint32_t) EXMEM.immediate , 0 );
     printf("PCinc\n");
     printInBinary( (uint32_t) EXMEM.PCinc , 0 );
+
+    printf("\n\nProgram Counter\n");
+    printInBinary( (uint32_t) pc, 0);
+    printInBinary( reg[ra], 0);
 
     return 0;
 }
