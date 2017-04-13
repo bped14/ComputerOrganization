@@ -38,12 +38,12 @@ void printInBinary(uint32_t num, int bit){
 }
 
 /*******************************************************************************
- █████╗ ██╗     ██╗   ██╗
-██╔══██╗██║     ██║   ██║
-███████║██║     ██║   ██║
-██╔══██║██║     ██║   ██║
-██║  ██║███████╗╚██████╔╝
-╚═╝  ╚═╝╚══════╝ ╚═════╝
+ █████╗  ██╗      ██╗   ██╗
+██╔══██╗ ██║      ██║   ██║
+███████║ ██║      ██║   ██║
+██╔══██║ ██║      ██║   ██║
+██║  ██║ ███████╗ ╚██████╔╝
+╚═╝  ╚═╝ ╚══════╝  ╚═════╝
 *******************************************************************************/
 
 /********************J_TYPE_FUNCTIONS*******************/
@@ -63,12 +63,24 @@ void jumpAligned(unsigned long jumpAddr){
 
 /********************I_TYPE_FUNCTIONS*******************/
 
-//beq
+void branchEqual(unsigned long rs, unsigned long rt, short int immed){
+    if(rs == rt){
+        pc = pc + immed;
+    } else {
+        pc++;
+    }
+    return;
+}
 
 
-//bne
-
-
+void branchNotEqual(unsigned long rs, unsigned long rt, short int immed){
+    if(rs != rt){
+        pc = pc + immed;
+    } else {
+        pc++;
+    }
+    return;
+}
 
 unsigned long addImmed(unsigned int rs, short int immed){
     unsigned long result;
@@ -83,7 +95,7 @@ unsigned long addImmediateUnsigned(unsigned int rs, short int immed){
     return result;
 }
 
-unsigned long setLessThanImmed(unsigned int rs, short int immed){
+unsigned long setLessThanImmed(unsigned long rs, short int immed){
     unsigned long result;
     result = (rs < immed)? 1 : 0;
     return result;
@@ -124,7 +136,13 @@ unsigned long loadUpperImmed(short int immed){
     return result;
 }
 
-/* CONFUSED BY THIS SHIT
+unsigned long loadWord(unsigned int rs, short int immed){
+    unsigned long result;
+    result = memory[rs + immed];
+    return result;
+}
+
+/*
 unsigned long loadByte(unsigned int rs, short int immed){
 
     unsigned long result;
@@ -136,12 +154,6 @@ unsigned long loadHalfWord(unsigned int rs, short int immed){
 
     unsigned long result;
 
-    return result;
-}
-
-unsigned long loadWord(unsigned int rs, short int immed){
-    unsigned long result;
-     R[rt] = M[R[rs]+SignExtImm]
     return result;
 }
 
@@ -168,26 +180,38 @@ void storeHalfWord(unsigned int rs, short int immed){
 
     return;
 }
+*/
 
-void storeWord(unsigned int rs, short int immed){
-    unsigned long result;
-
+void storeWord(unsigned long rs, unsigned long rt, short int immed){
+    memory[rs + immed] = rt;
     return;
 }
 
-*/
 
-void branchLessThanZero(unsigned int rs, short int immed){
-
+void branchLessThanZero(long rs, short int immed){
+    if(rs < 0){
+        pc = pc + immed;
+    } else {
+        pc++;
+    }
 }
 
 void branchGreaterThanZero(unsigned int rs, short int immed){
-
+    if(rs > 0){
+        pc = pc + immed;
+    } else {
+        pc++;
+    }
 }
 
 void branchLessThanEqualZero(unsigned int rs, short int immed){
-
+    if(rs <= 0){
+        pc = pc + immed;
+    } else {
+        pc++;
+    }
 }
+
 
 /********************R_TYPE_FUNCTIONS*******************/
 
@@ -271,7 +295,6 @@ unsigned long setLessThanUnsigned(unsigned int rs, unsigned int rt){
     return result;
 }
 
-/*
 unsigned long moveNonZero(unsigned int rs, unsigned int rt, unsigned int rd){
     unsigned long result;
     if(rt != 0){
@@ -284,22 +307,21 @@ unsigned long moveNonZero(unsigned int rs, unsigned int rt, unsigned int rd){
 
 unsigned long moveZero(unsigned int rs, unsigned int rt, unsigned int rd){
     unsigned long result;
-    if(rt = 0){
+    if(rt == 0){
         result = rs;
     } else {
         result = rd;
     }
     return result;
 }
-*/
 
 /*******************************************************************************
-██╗  ██╗███████╗██╗     ██████╗ ███████╗██████╗ ███████╗
-██║  ██║██╔════╝██║     ██╔══██╗██╔════╝██╔══██╗██╔════╝
-███████║█████╗  ██║     ██████╔╝█████╗  ██████╔╝███████╗
-██╔══██║██╔══╝  ██║     ██╔═══╝ ██╔══╝  ██╔══██╗╚════██║
-██║  ██║███████╗███████╗██║     ███████╗██║  ██║███████║
-╚═╝  ╚═╝╚══════╝╚══════╝╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝
+██╗  ██╗ ███████╗ ██╗      ██████╗  ███████╗ ██████╗  ███████╗
+██║  ██║ ██╔════╝ ██║      ██╔══██╗ ██╔════╝ ██╔══██╗ ██╔════╝
+███████║ █████╗   ██║      ██████╔╝ █████╗   ██████╔╝ ███████╗
+██╔══██║ ██╔══╝   ██║      ██╔═══╝  ██╔══╝   ██╔══██╗ ╚════██║
+██║  ██║ ███████╗ ███████╗ ██║      ███████╗ ██║  ██║ ███████║
+╚═╝  ╚═╝ ╚══════╝ ╚══════╝ ╚═╝      ╚══════╝ ╚═╝  ╚═╝ ╚══════╝
 *******************************************************************************/
 
 //sections up r type data
@@ -373,6 +395,22 @@ void rsRegDetermination(unsigned int rs){
 void rtRegDetermination(unsigned int rt){
     IDEX.Rt = IFID.Rt;
     IDEX.RtValue = reg[rt];
+}
+
+void destinationReg(unsigned int type, bool regWrite, bool memtoreg){
+    //i type = 2
+    //r type = 3
+
+    if((type == 2) && (regWrite)){
+        EXMEM.WBRegister = EXMEM.Rt;
+    } else if((type == 3) && (regWrite)){
+        EXMEM.WBRegister = EXMEM.Rd;
+    } else if((type == 2) && (memtoreg)){
+        EXMEM.WBRegister = EXMEM.Rt;
+    } else {
+        return;
+    }
+    return;
 }
 
 //takes the information on I and R type instructions and figures out what its supposed to do
@@ -828,7 +866,7 @@ void executeDetermination(){
                 IDEX.regWrite = false;
                 IDEX.memread = false;
                 IDEX.memtoreg = false;
-                IDEX.memwrite = false;
+                IDEX.memwrite = true;
                 rsRegDetermination(IFID.Rs);
                 rtRegDetermination(IFID.Rt);
                 IDEX.ALUop = bgtz;
@@ -894,9 +932,68 @@ void execute(){
             //determine the operation
             switch(EXMEM.ALUop){
 
+                case beq:
+                    branchEqual(EXMEM.RsValue, EXMEM.RtValue, EXMEM.immediate);
+                    break;
 
+                case bne:
+                    branchNotEqual(EXMEM.RsValue, EXMEM.RtValue, EXMEM.immediate);
+                    break;
+
+                case addi:
+                    EXMEM.ALUresult = addImmed(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case addiu:
+                    EXMEM.ALUresult = addImmediateUnsigned(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case slti:
+                    EXMEM.ALUresult = setLessThanImmed(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case sltiu:
+                    EXMEM.ALUresult = setLessThanImmedUnsigned(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case andi:
+                    EXMEM.ALUresult = andImmed(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case ori:
+                    EXMEM.ALUresult = orImmed(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case xori:
+                    EXMEM.ALUresult = xorImmed(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case lui:
+                    EXMEM.ALUresult = loadUpperImmed(EXMEM.immediate);
+                    break;
+
+                case lw:
+                    EXMEM.ALUresult = loadWord(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case sw:
+                    storeWord(EXMEM.RsValue, EXMEM.Rt, EXMEM.immediate);
+                    break;
+
+                case bltz:
+                    branchLessThanZero(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case bgtz:
+                    branchGreaterThanZero(EXMEM.RsValue, EXMEM.immediate);
+                    break;
+
+                case blez:
+                    branchLessThanEqualZero(EXMEM.RsValue, EXMEM.immediate);
+                    break;
 
             }
+
 
         //r type
         case 3:
@@ -970,12 +1067,12 @@ void execute(){
 
                 //move non zero
                 case movn :
-                    //EXMEM.ALUresult = moveNonZero(EXMEM.RsValue, EXMEM.RtValue);
+                    EXMEM.ALUresult = moveNonZero(EXMEM.RsValue, EXMEM.RtValue, EXMEM.Rd);
                     break;
 
                 //move zero
                 case movz :
-                    //EXMEM.ALUresult = moveZero(EXMEM.RsValue, EXMEM.RtValue);
+                    EXMEM.ALUresult = moveZero(EXMEM.RsValue, EXMEM.RtValue, EXMEM.Rd);
                     break;
             }
 
@@ -987,12 +1084,12 @@ void execute(){
 
 
 /*******************************************************************************
-██████╗ ██╗██████╗ ███████╗██╗     ██╗███╗   ██╗███████╗
-██╔══██╗██║██╔══██╗██╔════╝██║     ██║████╗  ██║██╔════╝
-██████╔╝██║██████╔╝█████╗  ██║     ██║██╔██╗ ██║█████╗
-██╔═══╝ ██║██╔═══╝ ██╔══╝  ██║     ██║██║╚██╗██║██╔══╝
-██║     ██║██║     ███████╗███████╗██║██║ ╚████║███████╗
-╚═╝     ╚═╝╚═╝     ╚══════╝╚══════╝╚═╝╚═╝  ╚═══╝╚══════╝
+██████╗  ██╗ ██████╗  ███████╗ ██╗      ██╗ ███╗   ██╗ ███████╗
+██╔══██╗ ██║ ██╔══██╗ ██╔════╝ ██║      ██║ ████╗  ██║ ██╔════╝
+██████╔╝ ██║ ██████╔╝ █████╗   ██║      ██║ ██╔██╗ ██║ █████╗
+██╔═══╝  ██║ ██╔═══╝  ██╔══╝   ██║      ██║ ██║╚██╗██║ ██╔══╝
+██║      ██║ ██║      ███████╗ ███████╗ ██║ ██║ ╚████║ ███████╗
+╚═╝      ╚═╝ ╚═╝      ╚══════╝ ╚══════╝ ╚═╝ ╚═╝  ╚═══╝ ╚══════╝
 *******************************************************************************/
 
 void IF(unsigned long machCode){
@@ -1000,19 +1097,17 @@ void IF(unsigned long machCode){
 
     //find out instruction type and decode that type
     typeSelect(machCode);
+
+    //HAND OFF
+    IDEX.type = IFID.type;
     return;
 }
 
 void ID(){
-    IDEX.type = IFID.type;
-
     //find out what we're supposed to do with the instruction
     executeDetermination();
 
-    return;
-}
-
-void EX(){
+    //HAND OFF
     EXMEM.regWrite = IDEX.regWrite;
     EXMEM.memread = IDEX.memread;
     EXMEM.memtoreg = IDEX.memtoreg;
@@ -1027,10 +1122,22 @@ void EX(){
     EXMEM.immediate = IDEX.immediate;
     EXMEM.PCinc = IDEX.PCinc;
     EXMEM.type = IDEX.type;
+    return;
+}
 
+void EX(){
     //do the ALU operation
     execute();
+    //determine destinationReg
+    destinationReg(EXMEM.type, EXMEM.regWrite, EXMEM.memtoreg);
 
+    //HAND OFF
+    MEMWB.regWrite = EXMEM.regWrite;
+    MEMWB.memtoreg = EXMEM.memtoreg;
+    MEMWB.memwrite = EXMEM.memwrite;
+    //DataMemResult
+    MEMWB.ALUresult = EXMEM.ALUresult;
+    MEMWB.WBRegister = EXMEM.WBRegister;
     return;
 }
 
@@ -1047,24 +1154,28 @@ void WB(){
 }
 
 /******************************************************************************
-███╗   ███╗ █████╗ ██╗███╗   ██╗
-████╗ ████║██╔══██╗██║████╗  ██║
-██╔████╔██║███████║██║██╔██╗ ██║
-██║╚██╔╝██║██╔══██║██║██║╚██╗██║
-██║ ╚═╝ ██║██║  ██║██║██║ ╚████║
-╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
+███╗   ███╗  █████╗  ██╗ ███╗   ██╗
+████╗ ████║ ██╔══██╗ ██║ ████╗  ██║
+██╔████╔██║ ███████║ ██║ ██╔██╗ ██║
+██║╚██╔╝██║ ██╔══██║ ██║ ██║╚██╗██║
+██║ ╚═╝ ██║ ██║  ██║ ██║ ██║ ╚████║
+╚═╝     ╚═╝ ╚═╝  ╚═╝ ╚═╝ ╚═╝  ╚═══╝
 ******************************************************************************/
 
 
 int main(){
-
+    //copy over memory
     Initialize_Simulation_Memory();
-    pc = 0xa0000000;
-    reg[ra] = 0xa;
+    //initialize important regisers
+    reg[sp] = memory[0];
+    reg[fp] = memory[1];
+    pc = memory[5];
+
+    //below this is all used for debugging
 
     printf("%.4x\n",memory[1]);
 
-    IF(0x0ffffffe);
+    IF(0x0165182a);
     printf("type\n");
     printInBinary( (uint32_t) IFID.type , 0 );
     printf("Opcode\n");
@@ -1123,14 +1234,31 @@ int main(){
     printInBinary( (uint32_t) EXMEM.Rd , 0 );
     printf("Rt\n");
     printInBinary( (uint32_t) EXMEM.Rt , 0 );
+    printf("Rs Value\n");
+    printInBinary( (uint32_t) EXMEM.RsValue , 0 );
+    printf("Rt Value\n");
+    printInBinary( (uint32_t) EXMEM.RtValue , 0 );
     printf("immediate\n");
     printInBinary( (uint32_t) EXMEM.immediate , 0 );
     printf("PCinc\n");
     printInBinary( (uint32_t) EXMEM.PCinc , 0 );
 
+    MEM();
+    printf("\n\nregWrite\n");
+    printInBinary( (uint32_t) MEMWB.regWrite , 0 );
+    printf("memtoreg\n");
+    printInBinary( (uint32_t) MEMWB.memtoreg , 0 );
+    printf("memwrite\n");
+    printInBinary( (uint32_t) MEMWB.memwrite , 0 );
+    printf("DataMemResult\n");
+    printInBinary( (uint32_t) MEMWB.DataMemResult , 0 );
+    printf("ALUresult\n");
+    printInBinary( (uint32_t) MEMWB.ALUresult , 0 );
+    printf("WBRegister\n");
+    printInBinary( (uint32_t) MEMWB.WBRegister , 0 );
+
     printf("\n\nProgram Counter\n");
     printInBinary( (uint32_t) pc, 0);
-    printInBinary( reg[ra], 0);
 
     return 0;
 }

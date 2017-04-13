@@ -90,9 +90,8 @@ sh
 #define sltu    0x002B      //r
 
 //need some help on these two
-#define movn    0x000B
-#define movz    0x000A
-
+#define movn    0x000B      //r
+#define movz    0x000A      //r
 
 
 
@@ -144,6 +143,7 @@ typedef struct{
     unsigned int Rt; //destination reg i type
     unsigned long RsValue; //regRsValue
     unsigned long RtValue; //regRtValue
+    unsigned long WBRegister;
     short int immediate;
     unsigned int PCinc;
     unsigned int type;
@@ -153,9 +153,11 @@ typedef struct{
 typedef struct{
     bool regWrite;
     bool memtoreg;
+    bool memwrite;
     unsigned int DataMemResult;
     unsigned long ALUresult;
     unsigned long WBRegister;
+    unsigned int type;
 
 } MEMWB_Reg;
 
