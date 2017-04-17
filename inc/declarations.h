@@ -6,7 +6,41 @@
 
 //register declarations
 
-#define
+#define zero    0
+#define at      1
+#define v0      2
+#define v1      3
+#define a0      4
+#define a1      5
+#define a2      6
+#define a3      7
+#define t0      8
+#define t1      9
+#define t2      10
+#define t3      11
+#define t4      12
+#define t5      13
+#define t6      14
+#define t7      15
+#define s0      16
+#define s1      17
+#define s2      18
+#define s3      19
+#define s4      20
+#define s5      21
+#define s6      22
+#define s7      23
+#define t8      24
+#define t9      25
+#define k0      26
+#define k1      27
+#define gp      28
+#define sp      29
+#define fp      30
+#define ra      31
+
+
+//instruction set
 
 /* need
 
@@ -15,8 +49,6 @@ sh
 
 */
 
-
-//instruction set
 #define j       0x0002      //j
 #define jal     0x0003      //j
 
@@ -42,6 +74,7 @@ sh
 #define bgtz    0x0007      //i
 #define blez    0x0006      //i
 
+//seb sign extend byte
 #define sll     0x0000      //r
 #define srl     0x0002      //r
 #define jr      0x0008      //r
@@ -57,9 +90,8 @@ sh
 #define sltu    0x002B      //r
 
 //need some help on these two
-#define movn    0x000B
-#define movz    0x000A
-
+#define movn    0x000B      //r
+#define movz    0x000A      //r
 
 
 
@@ -92,6 +124,7 @@ typedef struct{
     unsigned long RtValue; //regRtValue
     unsigned int shamt;
     short int immediate;
+    unsigned long jumpaddress;
     unsigned int PCinc;
     unsigned int type;
 
@@ -104,8 +137,13 @@ typedef struct{
     bool memwrite;
     unsigned int ALUop;
     unsigned long ALUresult;
+    unsigned long jumpaddress;
+    unsigned int shamt;
     unsigned int Rd; //destination reg r type
     unsigned int Rt; //destination reg i type
+    unsigned long RsValue; //regRsValue
+    unsigned long RtValue; //regRtValue
+    unsigned long WBRegister;
     short int immediate;
     unsigned int PCinc;
     unsigned int type;
@@ -115,9 +153,11 @@ typedef struct{
 typedef struct{
     bool regWrite;
     bool memtoreg;
+    bool memwrite;
     unsigned int DataMemResult;
     unsigned long ALUresult;
     unsigned long WBRegister;
+    unsigned int type;
 
 } MEMWB_Reg;
 
