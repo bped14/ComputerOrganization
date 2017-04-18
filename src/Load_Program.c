@@ -1,6 +1,6 @@
 #include "Load_Program.h"
 
-#define memory_size 1200
+#define memory_size 4500
 
 unsigned int memory[memory_size];
 

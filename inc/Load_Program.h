@@ -3,7 +3,7 @@
 
 void Initialize_Simulation_Memory(void);
 
-#define memory_size 1200
+#define memory_size 4500
 
 unsigned int memory[memory_size];
 

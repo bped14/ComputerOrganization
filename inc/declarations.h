@@ -137,6 +137,7 @@ typedef struct{
     bool memwrite;
     unsigned int ALUop;
     unsigned long ALUresult;
+    long DataMemResult;
     unsigned long jumpaddress;
     unsigned int shamt;
     unsigned int Rd; //destination reg r type
@@ -154,7 +155,7 @@ typedef struct{
     bool regWrite;
     bool memtoreg;
     bool memwrite;
-    unsigned int DataMemResult;
+    long DataMemResult;
     unsigned long ALUresult;
     unsigned long WBRegister;
     unsigned int type;
