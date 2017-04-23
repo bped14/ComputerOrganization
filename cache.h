@@ -14,6 +14,10 @@
 #define D_BLOCK_SIZE 8
 
 #define PENALTY 8
+#define WRITEPOLICY 1
+#define BYTE_OFFSET 2
+#define BLOCK_OFFSET 2
+#define BLOCK_MASK 0xffffffff
 
 /* Block Size word alligned*/
 #define I_TAG 27  //byte 25
@@ -30,7 +34,7 @@ typedef struct Block_* Block;
 
 /*CreateCache
  *
- *Creates a cache.
+ *Creates an cache.
  *Will be used to create I and D cache_size
  *
 */
@@ -43,17 +47,17 @@ Cache CreateCache(int cache_size, int block_size);
 
 void DeleteCache(Cache cache);
 
-/*ReadCache
- *read stuff from cache for write back
+/*iCacheRead
+ *read stuff from iCache for write back
 */
 
-int ReadCache(Cache cache, int address);
+int CacheRead(Cache cache, int address, unsigned int data);
 
 /*WriteCache
  *put stuff in the cache
 */
 
-int WriteCache(Cache cache, int address);
+int WriteCache(Cache cache, int address, unsigned int data);
 
 /*PrintCache
  *see what is in the cache for debugging

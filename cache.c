@@ -8,9 +8,10 @@
 //Structs (Cache and Block)
 struct Block_ {
   //valid and dirty are not part of the block address
-  int valid;
+  int valid; //allows you to know if block is filled
   int tag;
-  int dirty;
+  int dirty; //whether data is different than that stored in main memory. WB/WT stuff
+  unsigned int data;
 }
 
 struct Cache_ {
@@ -80,12 +81,76 @@ Cache CreateCache(int cache_size, int block_size, int write_policy)
     cache->blocks[i]->valid = 0;
     cache->blocks[i]->dirty = 0;
     cache->blocks[i]->tag = NULL;
+    cache->blocks[i]->data = 0x00000000;
   }
 
   return cache;
 }
 
+/*Prints Cache results*/
+void printCache(Cache cache)
+{
+  int i;
+  char* tag;
+
+  if(cache != NULL)
+  {
+    for(i=0; i<cache->numLines;i++);
+    {
+      tag = "NULL";
+      if(cache->block[i]->tag != NULL)
+      {
+        tag = cache->blocks[i]->tag;
+      }
+      printf("[%i]: {valid: %i, tag: %s}",i,cache->blocks[i]->valid,tag);
+    }
+    printf("Cache\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tMEMORY WRITES: %i\n\n\tCACHE SIZE: %i Bytes\n\tBLOCK SIZE: %i Bytes\n\tNUM LINES: %i\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->numLines);
+    }
+}
+
+void CacheRead(Cache cache, unsigned int address, unsigned int data);
+{
+  Block block;
+  //find block address to look for
+  int block_address = ((address >> BYTE_OFFSET >> BLOCK_OFFSET) & BLOCK_MASK);
+  block = cache->blocks[block_address];
+  //obtain tag from address
+  int tag = (address >> BYTE_OFFSET >> BLOCK_OFFSET >> BLOCK_ADDRESS);
+
+  if(DEBUG)
+  {
+    printf("Reading data from block: %i\n Tag being used: %i", block_address,tag);
+  }
+
+  if(block->valid == 1 && block->tag == tag)
+  {
+    cache->hits++;
+    data = cache->blocks[block_address]->data;
+    //might need to free tag, not sure yet
+  }
+  else
+  {
+    cache->misses++;
+    cache->reads++;
+
+    //need to go to main memory to retrive data
+
+    if(cache->write_policy == 1 && block->dirty ==1)
+    {
+      cache->writes++;
+      block->dirty = 0;
+    }
+    //clock_cycles = clock_cycles + PENALTY
+    block->valid = 1;
+    block->tag = tag;
+  }
+  //find
+}
 /*how professor implemented
+
+//do these before you enter i-cache_read
+block address = [(address >> byte offset >> block offset) & block mask)]
+cache address = block address << block offset + byte offset value)
 
 i-cache_read(takes in address, &data)
 {
@@ -111,7 +176,3 @@ update valid bit
 return cachehit; if hit tell pipe data was valid, if false stall pipeline
 }
 }
-
-//do these before you enter i-cache_read
-block address = [(address >> byte offset >> block offset) & block mask)]
-cache address = block address << block offset + block offset value)
