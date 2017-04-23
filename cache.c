@@ -17,7 +17,7 @@ struct Block_ {
 struct Cache_ {
   int hits;
   int misses;
-  int reads;
+  int reads; //memory reads
   int writes;
   int cache_size;
   int block_size;
@@ -108,8 +108,22 @@ void printCache(Cache cache)
     }
 }
 
+/*Read cache and take dat from cache or go grab from memory if not in cache */
 void CacheRead(Cache cache, unsigned int address, unsigned int data);
 {
+  /* Check inputs */
+  if(cache == NULL)
+  {
+    fprintf("Put in a real cache.\n");
+    return 0;
+  }
+
+  if(address == NULL)
+  {
+    fprintf("Put in a real address.\n");
+    return 0;
+  }
+
   Block block;
   //find block address to look for
   int block_address = ((address >> BYTE_OFFSET >> BLOCK_OFFSET) & BLOCK_MASK);
@@ -134,6 +148,7 @@ void CacheRead(Cache cache, unsigned int address, unsigned int data);
     cache->reads++;
 
     //need to go to main memory to retrive data
+    data = cache->blocks[block_address]->data;
 
     if(cache->write_policy == 1 && block->dirty ==1)
     {
@@ -146,6 +161,30 @@ void CacheRead(Cache cache, unsigned int address, unsigned int data);
   }
   //find
 }
+
+void WriteCache(Cache cache, unsigned int address, unsigned int data)
+{
+  /* Validate inputs */
+  if(cache == NULL)
+  {
+    fprintf("Put in a real cache.\n");
+    return 0;
+  }
+
+  if(address == NULL)
+  {
+    fprintf("Put in a real address.\n");
+    return 0;
+  }
+  Block block;
+  //find block address to look for
+  int block_address = ((address >> BYTE_OFFSET >> BLOCK_OFFSET) & BLOCK_MASK);
+  block = cache->blocks[block_address];
+  //obtain tag from address
+  int tag = (address >> BYTE_OFFSET >> BLOCK_OFFSET >> BLOCK_ADDRESS);
+
+}
+
 /*how professor implemented
 
 //do these before you enter i-cache_read

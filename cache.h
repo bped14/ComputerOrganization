@@ -51,13 +51,13 @@ void DeleteCache(Cache cache);
  *read stuff from iCache for write back
 */
 
-int CacheRead(Cache cache, int address, unsigned int data);
+void CacheRead(Cache cache, unsigned int address, unsigned int data);
 
 /*WriteCache
  *put stuff in the cache
 */
 
-int WriteCache(Cache cache, int address, unsigned int data);
+void WriteCache(Cache cache, unsigned int address, unsigned int data);
 
 /*PrintCache
  *see what is in the cache for debugging
