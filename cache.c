@@ -188,10 +188,13 @@ void WriteCache(Cache cache, unsigned int address, unsigned int data)
 int main()
 {
   iCache = CreateCache(CACHE_SIZE, BLOCK_SIZE, WRITE_POLICY);
-  iCache = CreateCache(CACHE_SIZE, BLOCK_SIZE, WRITE_POLICY);
+  d_Cache = CreateCache(CACHE_SIZE, BLOCK_SIZE, WRITE_POLICY);
 
   WriteCache(iCache, 0x00003759, 0x85937593);
   printCache(iCache);
+
+  WriteCache(d_Cache, 0x00003759, 0x85937593);
+  printCache(d_Cache);
 }
 /*how professor implemented
 
