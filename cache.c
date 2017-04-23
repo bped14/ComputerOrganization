@@ -88,7 +88,7 @@ Cache CreateCache(int cache_size, int block_size, int write_policy)
 }
 
 /*Prints Cache results*/
-void printCache(Cache cache)
+void PrintCache(Cache cache)
 {
   int i;
   char* tag;
@@ -185,6 +185,14 @@ void WriteCache(Cache cache, unsigned int address, unsigned int data)
 
 }
 
+int main()
+{
+  iCache = CreateCache(CACHE_SIZE, BLOCK_SIZE, WRITE_POLICY);
+  iCache = CreateCache(CACHE_SIZE, BLOCK_SIZE, WRITE_POLICY);
+
+  WriteCache(iCache, 0x00003759, 0x85937593);
+  printCache(iCache);
+}
 /*how professor implemented
 
 //do these before you enter i-cache_read
