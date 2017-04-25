@@ -85,18 +85,17 @@ Cache CreateCache(int cache_size, int block_size, int write_policy)
 }
 
 /*Read cache and take dat from cache or go grab from memory if not in cache */
-int iCacheRead(Cache cache, unsigned int address)
+int iCacheRead(Cache cache, unsigned int address, unsigned int data)
 {
-  unsigned int data = 0x00000000;
+  unsigned int memory = 0x00000000;
   /* Check inputs */
   if(cache == NULL)
   {
     printf("Put in a real cache.\n");
     return 0;
   }
-  //Block block;
+
   unsigned int block_address = ((address >> BYTE_OFFSET >> I_OFFSET) & I_BLOCK_MASK); //get block address
-  //block = cache->blocks[block_address];
   unsigned int tag = (address >> BYTE_OFFSET >> I_OFFSET >> I_INDEX); //get tag
 
   if(DEBUG)
@@ -104,45 +103,54 @@ int iCacheRead(Cache cache, unsigned int address)
     printf("Reading data from block: %i\nTag being used: %i\n", block_address,tag);
   }
 
-  if(cache->blocks[block_address]->valid == 1 && cache->blocks[block_address]->tag == tag)
+  if(cache->blocks[block_address]->valid == 1 && cache->blocks[block_address]->tag == tag) //cache hit
   {
-    printf("Valid bit equals 1 and tags match\n");
+    //printf("Valid bit equals 1 and tags match\n");
     cache->hits++;
-    data = cache->blocks[block_address]->data; //take data from cache and put it in variable to use
-    //might need to free tag, not sure yet
+    memory = cache->blocks[block_address]->data; //take data from cache and put it in memory
   }
-  else
+  else //cache miss
   {
     cache->misses++;
-    cache->reads++; //memory reads
+    cache->reads++; //memory read
 
-    //need to go to main memory to retrive data, need to write code. using data variable as placeholder
-
-    if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1)
+    if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1) //check to see if data in cache is dirty
     {
+      memory = cache->blocks[block_address]->data; //put old data from cache into main memory
+      cache->blocks[block_address]->dirty = 0; //mark data as not dirty dirty
+      cache->blocks[block_address]->data = data; //put new data into cache
       cache->writes++;
-      cache->blocks[block_address]->dirty = 0;
+      //clock_cycles = clock_cycles + PENALTY;
+    }
+    else if(cache->write_policy == 0)
+    {
+      memory = cache->blocks[block_address]->data; //write data to main memory
     }
     //clock_cycles = clock_cycles + PENALTY
     cache->blocks[block_address]->valid = 1;
     cache->blocks[block_address]->tag = tag;
   }
-  printf("Data: %i\n",data);
+
+  if(cache->write_policy == 1)
+  {
+    cache->blocks[block_address]->dirty = 1;
+  }
+
+  printf("Memory: %i\n",memory);
   return 0;
 }
 
-int d_CacheRead(Cache cache, unsigned int address)
+int d_CacheRead(Cache cache, unsigned int address, unsigned int data)
 {
-  unsigned int data = 0x00000000;
+  unsigned int memory = 0x00000000;
   /* Check inputs */
   if(cache == NULL)
   {
     printf("Put in a real cache.\n");
     return 0;
   }
-  //Block block;
+
   int block_address = ((address >> BYTE_OFFSET >> D_OFFSET) & D_BLOCK_MASK); //get block address
-  //block = cache->blocks[block_address];
   unsigned int tag = (address >> BYTE_OFFSET >> D_OFFSET >> D_INDEX); //get tag
 
   if(DEBUG)
@@ -152,28 +160,33 @@ int d_CacheRead(Cache cache, unsigned int address)
 
   if(cache->blocks[block_address]->valid == 1 && cache->blocks[block_address]->tag == tag)
   {
-    printf("Valid bit equal 1 and tags match\n");
+    //printf("Valid bit equal 1 and tags match\n");
     cache->hits++;
     data = cache->blocks[block_address]->data; //take data from cache and store in variable to use;
     //might need to free tag, not sure yet
   }
-  else
+  else //cache miss
   {
     cache->misses++;
-    cache->reads++;
+    cache->reads++; //memory read
 
-    //need to go to main memory to retrive data, still need to write code, using data as placeholder
-
-    if(cache->write_policy == 1 && cache->blocks[block_address]->dirty ==1)
+    if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1) //check to see if data in cache is dirty
     {
+      memory = cache->blocks[block_address]->data; //put old data from cache into main memory
+      cache->blocks[block_address]->dirty = 0; //mark data as not dirty dirty
+      cache->blocks[block_address]->data = data; //put new data into cache
       cache->writes++;
-      cache->blocks[block_address]->dirty = 0;
+      //clock_cycles = clock_cycles + PENALTY;
+    }
+    else if(cache->write_policy == 0)
+    {
+      memory = cache->blocks[block_address]->data; //write data to main memory
     }
     //clock_cycles = clock_cycles + PENALTY
     cache->blocks[block_address]->valid = 1;
     cache->blocks[block_address]->tag = tag;
   }
-  printf("Data: %i\n",data);
+  printf("Memory: %i\n", memory);
   return 0;
 }
 
@@ -267,19 +280,22 @@ int PrintCache(Cache cache)
 int main()
 {
   Cache iCache;
-  Cache d_Cache;
+  //Cache d_Cache;
 
   unsigned int data1 = 0x77654321;
   unsigned int data2 = 0x73656383;
   unsigned int address1 = 0x8764444;
   unsigned int address2 = 0x00054321;
+  unsigned int address3 = 0x58354321;
+  unsigned int address4 = 0x52554321;
 
   iCache = CreateCache(I_CACHE_SIZE, I_BLOCK_SIZE, WRITE_POLICY);
-  d_Cache = CreateCache(D_CACHE_SIZE, D_BLOCK_SIZE, WRITE_POLICY);
+  //d_Cache = CreateCache(D_CACHE_SIZE, D_BLOCK_SIZE, WRITE_POLICY);
   iWriteCache(iCache, address1, data1);
   iWriteCache(iCache, address2, data2);
-  iCacheRead(iCache, address2);
+  iCacheRead(iCache, address3, data2);
+  iCacheRead(iCache, address4, data1);
   PrintCache(iCache);
-  d_WriteCache(d_Cache, 0x00054321, 0x12345678);
-  PrintCache(d_Cache);
+  //d_WriteCache(d_Cache, 0x00054321, 0x12345678);
+  //PrintCache(d_Cache);
 }
