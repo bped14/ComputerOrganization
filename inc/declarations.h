@@ -88,10 +88,9 @@ sh
 #define nor     0x0027      //r
 #define slt     0x002A      //r
 #define sltu    0x002B      //r
-
-//need some help on these two
 #define movn    0x000B      //r
 #define movz    0x000A      //r
+#define seb     0x001f      //r
 
 
 
@@ -137,6 +136,7 @@ typedef struct{
     bool memwrite;
     unsigned int ALUop;
     unsigned long ALUresult;
+    long delayedBranch;
     long DataMemResult;
     unsigned long jumpaddress;
     unsigned int shamt;
@@ -156,6 +156,7 @@ typedef struct{
     bool memtoreg;
     bool memwrite;
     long DataMemResult;
+    long delayedBranch;
     unsigned long ALUresult;
     unsigned long WBRegister;
     unsigned int type;
