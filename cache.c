@@ -9,10 +9,10 @@
 struct Block_ {
   //valid and dirty are not part of the block address
   int valid; //allows you to know if block is filled
-  int tag;
+  unsigned int tag;
   int dirty; //whether data is different than that stored in main memory. WB/WT stuff
   unsigned int data;
-}
+};
 
 struct Cache_ {
   int hits;
@@ -31,24 +31,23 @@ Cache CreateCache(int cache_size, int block_size, int write_policy)
 {
   //local variables
   Cache cache;
-  int i;
-
+  int i = 0;
 //making sure that user input is correct
   if(cache_size <= 0)
   {
-    printf("Cache size needs to be greater than zero, nice try");
+    printf("Cache size needs to be greater than zero, nice try\n");
     return NULL;
   }
 
   if(block_size <= 0)
   {
-    printf("Block size needs to be greater than zero, nice try");
+    printf("Block size needs to be greater than zero, nice try\n");
     return NULL;
   }
 
   if(write_policy != 0 && write_policy != 1)
   {
-    printf("Write policy must be write back or write through");
+    printf("Write policy must be write back or write through\n");
     return NULL;
   }
 
@@ -65,13 +64,13 @@ Cache CreateCache(int cache_size, int block_size, int write_policy)
   cache->reads = 0;
   cache->writes = 0;
   cache->write_policy = write_policy;
-  cache->cache_size = CACHE_SIZE;
-  cache->block_size = BLOCK_SIZE;
-  cache->lines = (int)(CACHE_SIZE/BLOCK_SIZE);
-  cache->blocks = (BLock*) malloc(sizeof(Block) * cache->lines);
-  assert(cache->blocks != NULL);
+  cache->cache_size = cache_size;
+  cache->block_size = block_size;
+  cache->lines = (int)(cache_size/block_size);
+  cache->blocks = (Block*) malloc(sizeof(Block) * cache->lines);
+  assert(cache->blocks != 0);
 
-  //initialize cache
+  //initialize blocks
   //fill valid and dirty bits with zero
 
   for(i=0; i<cache->lines; i++)
@@ -80,66 +79,83 @@ Cache CreateCache(int cache_size, int block_size, int write_policy)
     assert(cache->blocks[i] != NULL);
     cache->blocks[i]->valid = 0;
     cache->blocks[i]->dirty = 0;
-    cache->blocks[i]->tag = NULL;
+    cache->blocks[i]->tag = 0;
     cache->blocks[i]->data = 0x00000000;
   }
-
   return cache;
 }
 
-/*Prints Cache results*/
-void PrintCache(Cache cache)
-{
-  int i;
-  char* tag;
-
-  if(cache != NULL)
-  {
-    for(i=0; i<cache->numLines;i++);
-    {
-      tag = "NULL";
-      if(cache->block[i]->tag != NULL)
-      {
-        tag = cache->blocks[i]->tag;
-      }
-      printf("[%i]: {valid: %i, tag: %s}",i,cache->blocks[i]->valid,tag);
-    }
-    printf("Cache\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tMEMORY WRITES: %i\n\n\tCACHE SIZE: %i Bytes\n\tBLOCK SIZE: %i Bytes\n\tNUM LINES: %i\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->numLines);
-    }
-}
-
 /*Read cache and take dat from cache or go grab from memory if not in cache */
-void CacheRead(Cache cache, unsigned int address, unsigned int data);
+int iCacheRead(Cache cache, unsigned int address)
 {
+  unsigned int data = 0x00000000;
   /* Check inputs */
   if(cache == NULL)
   {
-    fprintf("Put in a real cache.\n");
+    printf("Put in a real cache.\n");
     return 0;
   }
-
-  if(address == NULL)
-  {
-    fprintf("Put in a real address.\n");
-    return 0;
-  }
-
-  Block block;
-  //find block address to look for
-  int block_address = ((address >> BYTE_OFFSET >> BLOCK_OFFSET) & BLOCK_MASK);
-  block = cache->blocks[block_address];
-  //obtain tag from address
-  int tag = (address >> BYTE_OFFSET >> BLOCK_OFFSET >> BLOCK_ADDRESS);
+  //Block block;
+  unsigned int block_address = ((address >> BYTE_OFFSET >> I_OFFSET) & I_BLOCK_MASK); //get block address
+  //block = cache->blocks[block_address];
+  unsigned int tag = (address >> BYTE_OFFSET >> I_OFFSET >> I_INDEX); //get tag
 
   if(DEBUG)
   {
-    printf("Reading data from block: %i\n Tag being used: %i", block_address,tag);
+    printf("Reading data from block: %i\nTag being used: %i\n", block_address,tag);
   }
 
-  if(block->valid == 1 && block->tag == tag)
+  if(cache->blocks[block_address]->valid == 1 && cache->blocks[block_address]->tag == tag)
   {
+    printf("Valid bit equals 1 and tags match\n");
     cache->hits++;
-    data = cache->blocks[block_address]->data;
+    data = cache->blocks[block_address]->data; //take data from cache and put it in variable to use
+    //might need to free tag, not sure yet
+  }
+  else
+  {
+    cache->misses++;
+    cache->reads++; //memory reads
+
+    //need to go to main memory to retrive data, need to write code. using data variable as placeholder
+
+    if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1)
+    {
+      cache->writes++;
+      cache->blocks[block_address]->dirty = 0;
+    }
+    //clock_cycles = clock_cycles + PENALTY
+    cache->blocks[block_address]->valid = 1;
+    cache->blocks[block_address]->tag = tag;
+  }
+  printf("Data: %i\n",data);
+  return 0;
+}
+
+int d_CacheRead(Cache cache, unsigned int address)
+{
+  unsigned int data = 0x00000000;
+  /* Check inputs */
+  if(cache == NULL)
+  {
+    printf("Put in a real cache.\n");
+    return 0;
+  }
+  //Block block;
+  int block_address = ((address >> BYTE_OFFSET >> D_OFFSET) & D_BLOCK_MASK); //get block address
+  //block = cache->blocks[block_address];
+  unsigned int tag = (address >> BYTE_OFFSET >> D_OFFSET >> D_INDEX); //get tag
+
+  if(DEBUG)
+  {
+    printf("Reading data from block: %i\nTag being used: %i\n", block_address,tag);
+  }
+
+  if(cache->blocks[block_address]->valid == 1 && cache->blocks[block_address]->tag == tag)
+  {
+    printf("Valid bit equal 1 and tags match\n");
+    cache->hits++;
+    data = cache->blocks[block_address]->data; //take data from cache and store in variable to use;
     //might need to free tag, not sure yet
   }
   else
@@ -147,82 +163,117 @@ void CacheRead(Cache cache, unsigned int address, unsigned int data);
     cache->misses++;
     cache->reads++;
 
-    //need to go to main memory to retrive data
-    data = cache->blocks[block_address]->data;
+    //need to go to main memory to retrive data, still need to write code, using data as placeholder
 
-    if(cache->write_policy == 1 && block->dirty ==1)
+    if(cache->write_policy == 1 && cache->blocks[block_address]->dirty ==1)
     {
       cache->writes++;
-      block->dirty = 0;
+      cache->blocks[block_address]->dirty = 0;
     }
     //clock_cycles = clock_cycles + PENALTY
-    block->valid = 1;
-    block->tag = tag;
+    cache->blocks[block_address]->valid = 1;
+    cache->blocks[block_address]->tag = tag;
   }
-  //find
+  printf("Data: %i\n",data);
+  return 0;
 }
 
-void WriteCache(Cache cache, unsigned int address, unsigned int data)
+
+int iWriteCache(Cache cache, unsigned int address, unsigned int data)
 {
   /* Validate inputs */
   if(cache == NULL)
   {
-    fprintf("Put in a real cache.\n");
+    printf("Put in a real cache.\n");
     return 0;
   }
+  //Block block;
+  int block_address = ((address >> BYTE_OFFSET >> I_OFFSET) & I_BLOCK_MASK); //get block address
+  //block = cache->blocks[block_address];
+  int tag = (address >> BYTE_OFFSET >> I_OFFSET >> I_INDEX); //get tag
+  //cache->blocks[block_address]->tag = tag;
 
-  if(address == NULL)
+  if(DEBUG)
   {
-    fprintf("Put in a real address.\n");
+    printf("Reading data from block: %i\n", block_address);
+    printf("Tag being used: %i\n",tag);
+  }
+
+  cache->blocks[block_address]->data = data; //putting data into cache
+  cache->blocks[block_address]->tag = tag; //changing tag
+  //might need to free tag, not sure yet
+
+  cache->writes++;
+  cache->blocks[block_address]->valid = 1;
+  //clock_cycles = clock_cycles + PENALTY
+  return 0;
+}
+
+int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
+{
+  /* Validate inputs */
+  if(cache == NULL)
+  {
+    printf("Put in a real cache.\n");
     return 0;
   }
-  Block block;
-  //find block address to look for
-  int block_address = ((address >> BYTE_OFFSET >> BLOCK_OFFSET) & BLOCK_MASK);
-  block = cache->blocks[block_address];
-  //obtain tag from address
-  int tag = (address >> BYTE_OFFSET >> BLOCK_OFFSET >> BLOCK_ADDRESS);
+  //Block block;
+  int block_address = ((address >> BYTE_OFFSET >> D_OFFSET) & D_BLOCK_MASK); //get block address
+  //block = cache->blocks[block_address];
+  unsigned int tag = (address >> BYTE_OFFSET >> D_OFFSET >> D_INDEX); //get tag
+  //block->tag = tag;
 
+  if(DEBUG)
+  {
+    printf("Reading data from block: %i\n",block_address);
+    printf("Tag being used: %i\n",tag);
+  }
+
+  cache->blocks[block_address]->data = data; //put data into cache
+  cache->blocks[block_address]->tag = tag; //change tag
+  //might need to free tag, not sure yet
+
+  cache->writes++;
+  //clock_cycles = clock_cycles + PENALTY
+  cache->blocks[block_address]->valid = 1;
+
+  return 0;
+}
+
+/*Prints Cache results*/
+int PrintCache(Cache cache)
+{
+  printf("\nInside PrintCache\n\n");
+  int i;
+  int valid;
+  int lines;
+  unsigned int tag;
+  unsigned int data;
+
+  lines = cache->lines;
+  if(cache != NULL)
+  {
+  for(i=0; i < lines; i++)
+  {
+      tag = cache->blocks[i]->tag;
+      valid = cache->blocks[i]->valid;
+      data = cache->blocks[i]->data;
+      printf("[%i]: { valid: %i, tag: %i } DATA: %i\n", i, valid, tag, data);
+  }
+    printf("Cache\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tMEMORY WRITES: %i\n\n\tCACHE SIZE: %i Words\n\tBLOCK SIZE: %i Words\n\tNUM LINES: %i\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->lines);
+  }
+    return 0;
 }
 
 int main()
 {
-  iCache = CreateCache(CACHE_SIZE, BLOCK_SIZE, WRITE_POLICY);
-  d_Cache = CreateCache(CACHE_SIZE, BLOCK_SIZE, WRITE_POLICY);
+  Cache iCache;
+  Cache d_Cache;
 
-  WriteCache(iCache, 0x00003759, 0x85937593);
-  printCache(iCache);
-
-  WriteCache(d_Cache, 0x00003759, 0x85937593);
-  printCache(d_Cache);
-}
-/*how professor implemented
-
-//do these before you enter i-cache_read
-block address = [(address >> byte offset >> block offset) & block mask)]
-cache address = block address << block offset + byte offset value)
-
-i-cache_read(takes in address, &data)
-{
-if (address & tag mask(bit mask)) == tag[blockaddress]) && (valid[blockaddress])
-{
-then if true we have cache hits
-&data = icache[cacheaddress];
-cachehit = true;
-}
-//must have cache miss
-else
-{
-cachehit = false;
-valid[blockaddress] = false;
-//call main memory to get data
-datavalid = main_memory(address, &data) //include penalty of 8 cycles mainmemory count down from 8, when = 0 change to hit
-if(datavalid == true)
-{
-cachedata[cache address] = data;
-//when valid
-update valid bit
-}
-return cachehit; if hit tell pipe data was valid, if false stall pipeline
-}
+  iCache = CreateCache(I_CACHE_SIZE, I_BLOCK_SIZE, WRITE_POLICY);
+  d_Cache = CreateCache(D_CACHE_SIZE, D_BLOCK_SIZE, WRITE_POLICY);
+  iWriteCache(iCache, 0x00054321, 0x12345678);
+  PrintCache(iCache);
+  d_WriteCache(d_Cache, 0x00054321, 0x12345678);
+  PrintCache(d_Cache);
 }

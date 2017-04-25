@@ -7,26 +7,29 @@
 #define DEBUG 1
 //#define WRITE_POLICY 1
 /* Cache Sizes in words*/
-#define I_CACHE_SIZE 32
-#define I_BLOCK_SIZE 8
+#define I_CACHE_SIZE 16
+#define I_BLOCK_SIZE 1
 
-#define D_CACHE_SIZE 64
-#define D_BLOCK_SIZE 8
+#define D_CACHE_SIZE 128
+#define D_BLOCK_SIZE 1
 
 #define PENALTY 8
-#define WRITEPOLICY 1
+#define WRITE_POLICY 0
 #define BYTE_OFFSET 2
-#define BLOCK_OFFSET 2
-#define BLOCK_MASK 0xffffffff
+//#define BLOCK_OFFSET 2
+//#define BLOCK_MASK 0xffffffff
+//#define BLOCK_INDEX 5
 
 /* Block Size word alligned*/
-#define I_TAG 27  //byte 25
-#define I_INDEX 2  //byte 2
-#define I_OFFSET 3 //byte 5
+//#define I_TAG
+#define I_INDEX 5  //block index
+#define I_OFFSET 0 //block offset
+#define I_BLOCK_MASK 0x0000001f
 
-#define D_TAG 25  //byte 21
-#define D_INDEX 3 //byte 5
-#define D_OFFSET 3 //byte 5
+//#define D_TAG
+#define D_INDEX 7 //block index
+#define D_OFFSET 0 //block offset
+#define D_BLOCK_MASK 0x0000007f
 
 /* Typedefs */
 typedef struct Cache_* Cache;
@@ -39,7 +42,7 @@ typedef struct Block_* Block;
  *
 */
 
-Cache CreateCache(int cache_size, int block_size);
+Cache CreateCache(int cache_size, int block_size, int write_policy);
 
 /*DestroyCache
  *not sure if we will need this but might come in handy
@@ -51,18 +54,32 @@ void DeleteCache(Cache cache);
  *read stuff from iCache for write back
 */
 
-void CacheRead(Cache cache, unsigned int address, unsigned int data);
+int iCacheRead(Cache cache, unsigned int address);
 
-/*WriteCache
- *put stuff in the cache
+/*d_CacheRead
+ *read stuff from d Cache for write back
 */
 
-void WriteCache(Cache cache, unsigned int address, unsigned int data);
+int d_CacheRead(Cache cache, unsigned int address);
+
+
+/*iWriteCache
+ *put stuff in the i cache
+*/
+
+int iWriteCache(Cache cache, unsigned int address, unsigned int data);
+
+/*d_WriteCache
+ *put stuff in the d cache
+*/
+
+int d_WriteCache(Cache cache, unsigned int address, unsigned int data);
+
 
 /*PrintCache
  *see what is in the cache for debugging
 */
 
-void PrintCache(Cache cache);
+int PrintCache(Cache cache);
 
 #endif
