@@ -29,7 +29,6 @@ struct Cache_ {
 //create a cache (I cache and D cache)
 Cache CreateCache(int cache_size, int block_size, int write_policy)
 {
-  //local variables
   Cache cache;
   int i = 0;
 //making sure that user input is correct
@@ -195,9 +194,10 @@ int iWriteCache(Cache cache, unsigned int address, unsigned int data)
 
   if(DEBUG)
   {
-    printf("Reading data from block: %i\n", block_address);
+    printf("Writing data from block: %i\n", block_address);
     printf("Tag being used: %i\n",tag);
   }
+
 
   cache->blocks[block_address]->data = data; //putting data into cache
   cache->blocks[block_address]->tag = tag; //changing tag
@@ -225,7 +225,7 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
 
   if(DEBUG)
   {
-    printf("Reading data from block: %i\n",block_address);
+    printf("Writing data from block: %i\n",block_address);
     printf("Tag being used: %i\n",tag);
   }
 
@@ -243,7 +243,6 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
 /*Prints Cache results*/
 int PrintCache(Cache cache)
 {
-  printf("\nInside PrintCache\n\n");
   int i;
   int valid;
   int lines;
@@ -260,7 +259,7 @@ int PrintCache(Cache cache)
       data = cache->blocks[i]->data;
       printf("[%i]: { valid: %i, tag: %i } DATA: %i\n", i, valid, tag, data);
   }
-    printf("Cache\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tMEMORY WRITES: %i\n\n\tCACHE SIZE: %i Words\n\tBLOCK SIZE: %i Words\n\tNUM LINES: %i\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->lines);
+    printf("\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tMEMORY WRITES: %i\n\n\tCACHE SIZE: %i Words\n\tBLOCK SIZE: %i Words\n\tNUM LINES: %i\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->lines);
   }
     return 0;
 }
@@ -270,9 +269,16 @@ int main()
   Cache iCache;
   Cache d_Cache;
 
+  unsigned int data1 = 0x77654321;
+  unsigned int data2 = 0x73656383;
+  unsigned int address1 = 0x8764444;
+  unsigned int address2 = 0x00054321;
+
   iCache = CreateCache(I_CACHE_SIZE, I_BLOCK_SIZE, WRITE_POLICY);
   d_Cache = CreateCache(D_CACHE_SIZE, D_BLOCK_SIZE, WRITE_POLICY);
-  iWriteCache(iCache, 0x00054321, 0x12345678);
+  iWriteCache(iCache, address1, data1);
+  iWriteCache(iCache, address2, data2);
+  iCacheRead(iCache, address2);
   PrintCache(iCache);
   d_WriteCache(d_Cache, 0x00054321, 0x12345678);
   PrintCache(d_Cache);

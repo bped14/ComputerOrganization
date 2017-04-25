@@ -4,7 +4,7 @@
 #define CACHE_H
 
 /* for when you want to print debug messages */
-#define DEBUG 1
+#define DEBUG 0
 //#define WRITE_POLICY 1
 /* Cache Sizes in words*/
 #define I_CACHE_SIZE 16
@@ -13,7 +13,7 @@
 #define D_CACHE_SIZE 128
 #define D_BLOCK_SIZE 1
 
-#define PENALTY 8
+#define PENALTY 8 
 #define WRITE_POLICY 0
 #define BYTE_OFFSET 2
 //#define BLOCK_OFFSET 2
@@ -22,9 +22,9 @@
 
 /* Block Size word alligned*/
 //#define I_TAG
-#define I_INDEX 5  //block index
+#define I_INDEX 4  //block index
 #define I_OFFSET 0 //block offset
-#define I_BLOCK_MASK 0x0000001f
+#define I_BLOCK_MASK 0x0000000f
 
 //#define D_TAG
 #define D_INDEX 7 //block index
