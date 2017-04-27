@@ -1,5 +1,6 @@
 #include "declarations.h"
 #include "Load_Program.h"
+#include "cache.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -26,6 +27,9 @@ MEMWB_Reg MEMWB;
 
 //intialize program counter
 unsigned long pc = 0;
+
+//Cycle counter
+unsigned long cycleCount = 0;
 
 //initalize End Of functions
 bool endOfFunction = false;
@@ -223,7 +227,7 @@ unsigned long loadHalfWord( int rs, short int immed){
     unsigned long result;
     result = round((rs + immed)/4);
     result = memory[result];
-    immed = immed % 2;
+    immed = (rs + immed) % 2;
     switch(immed){
         case 1 :
             result = (result & 0x0000ffff);
@@ -248,11 +252,8 @@ unsigned long loadByteUnsigned( int rs, short int immed){
     //printf("loadByteUnsigned\n");
     unsigned long result;
     result = round((rs + immed)/4);
-    //printf("location in memory: %lu\n", result);
     result = memory[result];
-    //printf("word in memory: 0x%08x\n", result);
-    immed = immed % 4;
-    //printf("immed: 0x%08x\n", immed);
+    immed = (rs + immed) % 4;
     switch(immed){
         case 3 :
             result = (result & 0x000000ff);
@@ -279,7 +280,7 @@ unsigned long loadHalfWordUnsigned(unsigned int rs, short int immed){
     unsigned long result;
     result = round((rs + immed)/4);
     result = memory[result];
-    immed = immed % 2;
+    immed = (rs + immed) % 2;
     switch(immed){
         case 1 :
             result = (result & 0x0000ffff);
@@ -355,7 +356,7 @@ void storeHalfWord( int rs,  int rt, short int immed){
     result = reg[rt];
     location = round((rs + immed)/4);
 
-    immed = immed % 2;
+    immed = (rs + immed) % 2;
     result = result & 0x0000ffff;
     switch(immed){
         case 1 :
@@ -565,24 +566,6 @@ unsigned long signExtendByte( int rt){
 ██║  ██║ ███████╗ ███████╗ ██║      ███████╗ ██║  ██║ ███████║
 ╚═╝  ╚═╝ ╚══════╝ ╚══════╝ ╚═╝      ╚══════╝ ╚═╝  ╚═╝ ╚══════╝
 *******************************************************************************/
-
-void printMemory(){
-    FILE *f = fopen("MEMORY.txt", "w");
-    if (f == NULL)
-    {
-        printf("Error opening file!\n");
-        exit(1);
-    }
-
-    /* print some text */
-    int index = 1;
-    while(index < memory_size){
-        fprintf(f, "%d:  0x%08x\n", index, memory[index]);
-        index++;
-    }
-    fclose(f);
-    return;
-}
 
 
 //sections up r type data
@@ -1449,11 +1432,9 @@ void memoryHelp(){
 ╚═╝      ╚═╝ ╚═╝      ╚══════╝ ╚══════╝ ╚═╝ ╚═╝  ╚═══╝ ╚══════╝
 *******************************************************************************/
 
-void IF(unsigned long machCode){
-    //find data in memory
-
+void IF(){
     //find out instruction type and decode that type
-    typeSelect(machCode);
+    typeSelect(memory[pc]);
 
     //HAND OFF
     IDEX.type = IFID.type;
@@ -1506,7 +1487,6 @@ void MEM(){
 }
 
 void WB(){
-    //if type does not equal j type
     if(pc == 0){
         endOfFunction = true;
     }
@@ -1539,7 +1519,6 @@ void WB(){
 ******************************************************************************/
 
 int main(){
-    unsigned long cycleCount = 0;
     //copy over memory
     Initialize_Simulation_Memory();
     //initialize important regisers
@@ -1552,19 +1531,16 @@ int main(){
     //printf("%04x\n\n", memory[pc]);
 
     while(pc != 0){
-
         //printf("Current INST: %08x\n\n", memory[pc]);
 
         WB();
         //printf("pc = %lu\n",pc);
-        IF(memory[pc]);
+        IF();
         ID();
         EX();
         MEM();
 
-
         if(endOfFunction == true){
-            printMemory();
             break;
         }
 
@@ -1587,6 +1563,29 @@ int main(){
         printf("Cycle Count:          %lu\n", cycleCount);
     }
 
+/*
+    Cache iCache;
+    //Cache d_Cache;
+
+    unsigned int data1 = 0x77654321;
+    unsigned int data2 = 0x73656383;
+    unsigned int address1 = 0x8764444;
+    unsigned int address2 = 0x00054321;
+    unsigned int address3 = 0x58354321;
+    unsigned int address4 = 0x52554321;
+
+    iCache = CreateCache(I_CACHE_SIZE, I_BLOCK_SIZE, WRITE_POLICY);
+    //d_Cache = CreateCache(D_CACHE_SIZE, D_BLOCK_SIZE, WRITE_POLICY);
+    iWriteCache(iCache, address1, data1);
+    iWriteCache(iCache, address2, data2);
+    iCacheRead(iCache, address3, data2);
+    iCacheRead(iCache, address4, data1);
+    PrintCache(iCache);
+    //d_WriteCache(d_Cache, 0x00054321, 0x12345678);
+    //PrintCache(d_Cache);
+
+*/
+
     return 0;
 }
 
@@ -1608,6 +1607,31 @@ int main(){
 ██████╔╝ ███████╗ ██████╔╝ ╚██████╔╝ ╚██████╔╝ ╚██████╔╝ ██║ ██║ ╚████║ ╚██████╔╝
 ╚═════╝  ╚══════╝ ╚═════╝   ╚═════╝   ╚═════╝   ╚═════╝  ╚═╝ ╚═╝  ╚═══╝  ╚═════╝
 *******************************************************************************/
+
+/*
+void printMemory(){
+    FILE *f = fopen("MEMORY.txt", "w");
+    if (f == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    //print
+    int index = 1;
+    while(index < memory_size){
+        fprintf(f, "%d:  0x%08x\n", index, memory[index]);
+        index++;
+    }
+    fclose(f);
+    return;
+}
+*/
+
+
+
+
+
 
 //Print register file
 /*
