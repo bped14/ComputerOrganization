@@ -2,6 +2,7 @@
 0x00000898,	// $fp = 2200
 0x00000320,	// data segment pointer used by the program
 0x00000000,
+0x00000000,
 0x00000078,	// $pc = 120
 0x00000000,
 0x00000000,
