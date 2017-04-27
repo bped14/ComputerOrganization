@@ -1534,7 +1534,6 @@ int main(){
         //printf("Current INST: %08x\n\n", memory[pc]);
 
         WB();
-        //printf("pc = %lu\n",pc);
         IF();
         ID();
         EX();
