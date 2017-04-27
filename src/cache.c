@@ -100,7 +100,7 @@ Cache CreateCache(int cache_size)
   return cache;
 }
 
-int iCacheRead(Cache cache, unsigned int address, unsigned int data)
+unsigned int iCacheRead(Cache cache, unsigned int address)
 {
   /* Check inputs */
   if(cache == NULL)
@@ -121,7 +121,7 @@ int iCacheRead(Cache cache, unsigned int address, unsigned int data)
   if(cache->blocks[block_address]->valid == 1 && cache->blocks[block_address]->tag == tag) //cache hit
   {
     cache->hits++;
-    //***take data with correct offset from cache and use it
+    return cache->blocks[block_address]->boffset[blockoffset]->data;
   }
   else //cache miss
   {
@@ -131,12 +131,12 @@ int iCacheRead(Cache cache, unsigned int address, unsigned int data)
     //perform main memory read
     //for block size of 4, grab the 4 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
     //for block size of 16, grab the 16 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
-    cache->blocks[block_address]->boffset[blockoffset]->data = memory[0]; //put data from main memory to cache
+    cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from main memory to cache
+    return cache->blocks[block_address]->boffset[blockoffset]->data;
     //clock_cycles = clock_cycles + I_PENALTY
     cache->blocks[block_address]->valid = 1;
     cache->blocks[block_address]->tag = tag;
   }
-    return 0;
 }
 
 int d_CacheRead(Cache cache, unsigned int address, unsigned int data)
@@ -263,11 +263,11 @@ int PrintCache(Cache cache)
       tag = cache->blocks[i]->tag;
       valid = cache->blocks[i]->valid;
       dirty = cache->blocks[i]->dirty;
-      printf("BLOCK[%i]: { valid: %i, dirty: %i tag: %i }", i, valid, dirty, tag);
+      printf("BLOCK[%i]:    { valid: %i, dirty: %i tag: %i }", i, valid, dirty, tag);
       for(j=0; j<BLOCK_WORDS; j++)
       {
        data = cache->blocks[i]->boffset[j]->data;
-       printf(" DATA[%i]: %i",j, data);
+       printf(" DATA[%i]: 0x%08x",j, data);
       }
       printf("\n");
   }

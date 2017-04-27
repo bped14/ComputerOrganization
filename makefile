@@ -25,14 +25,14 @@ all: $(MAIN)
 
 $(MAIN): $(OBJS)
 	@echo "Compiling: $@"
-	@$(CC) $(CFLAGS) -o $(MAIN) $(OBJS) $(LIBS)
+	@$(CC) $(CFLAGS) -o $(MAIN) $(OBJS) $(LIBS) -lm
 
 # Automatically builds all object files from source files
 # -c option compiles but does not link (create object files)
 # -o is output filename
 $(OBJS): %.o : $(SRCDIR)/%.c
 	@echo "Compiling object file: $@"
-	@$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@ 
 	@echo
 
 

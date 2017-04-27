@@ -7,9 +7,6 @@
 #include <math.h>
 
 
-
-
-
 /*******************************************************************************
  ██████╗  ██╗       ██████╗  ██████╗   █████╗  ██╗      ███████╗
 ██╔════╝  ██║      ██╔═══██╗ ██╔══██╗ ██╔══██╗ ██║      ██╔════╝
@@ -24,6 +21,7 @@ IFID_Reg IFID;
 IDEX_Reg IDEX;
 EXMEM_Reg EXMEM;
 MEMWB_Reg MEMWB;
+
 
 //intialize program counter
 unsigned long pc = 0;
@@ -46,11 +44,6 @@ int storeHalfHelper = 0;
 
 //DEFINE REGISTERS
 unsigned long reg[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-
-
-
-
-
 
 
 /*******************************************************************************
@@ -1421,8 +1414,6 @@ void memoryHelp(){
 }
 
 
-
-
 /*******************************************************************************
 ██████╗  ██╗ ██████╗  ███████╗ ██╗      ██╗ ███╗   ██╗ ███████╗
 ██╔══██╗ ██║ ██╔══██╗ ██╔════╝ ██║      ██║ ████╗  ██║ ██╔════╝
@@ -1432,9 +1423,11 @@ void memoryHelp(){
 ╚═╝      ╚═╝ ╚═╝      ╚══════╝ ╚══════╝ ╚═╝ ╚═╝  ╚═══╝ ╚══════╝
 *******************************************************************************/
 
-void IF(){
+void IF(Cache iCache){
+    unsigned int machCode;
     //find out instruction type and decode that type
-    typeSelect(memory[pc]);
+    machCode = iCacheRead(iCache, pc);
+    typeSelect(machCode);
 
     //HAND OFF
     IDEX.type = IFID.type;
@@ -1519,6 +1512,12 @@ void WB(){
 ******************************************************************************/
 
 int main(){
+    //initalize caches
+    Cache iCache;
+    Cache d_Cache;
+    iCache = CreateCache(I_CACHE_SIZE);
+    d_Cache = CreateCache(D_CACHE_SIZE);
+
     //copy over memory
     Initialize_Simulation_Memory();
     //initialize important regisers
@@ -1534,7 +1533,7 @@ int main(){
         //printf("Current INST: %08x\n\n", memory[pc]);
 
         WB();
-        IF();
+        IF(iCache);
         ID();
         EX();
         MEM();
@@ -1562,21 +1561,12 @@ int main(){
         printf("Cycle Count:          %lu\n", cycleCount);
     }
 
-    Cache iCache;
-    Cache d_Cache;
-
     unsigned int data1 = 0x77654321;
     unsigned int data2 = 0x73656383;
     unsigned int address1 = 0x8764444;
     signed int address2 = 0x00054321;
     unsigned int address3 = 0x58354321;
     //unsigned int address4 = 0x52554444;
-
-    iCache = CreateCache(I_CACHE_SIZE);
-    d_Cache = CreateCache(D_CACHE_SIZE);
-    iCacheRead(iCache, address3, data2);
-    iCacheRead(iCache, address3, data2);
-    iCacheRead(iCache, address1, data1);
 
     printf("iCache\n");
     PrintCache(iCache);
