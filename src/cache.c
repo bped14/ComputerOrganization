@@ -109,9 +109,11 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
     return 0;
   }
 
-  int block_address = ((address << BYTE_OFFSET >> I_OFFSET) & I_BLOCK_MASK); //get block address
-  unsigned int tag = (address << BYTE_OFFSET >> I_OFFSET >> I_INDEX); //get tag
-  int blockoffset = ((address << BYTE_OFFSET) & OFFSET_MASK);
+  //address = address << BYTE_OFFSET; //multiply word address by 4 to make byte addressable
+
+  int block_address = ((address >> I_OFFSET) & I_BLOCK_MASK); //get block address
+  unsigned int tag = (address >> I_OFFSET >> I_INDEX); //get tag
+  int blockoffset = ((address >> BYTE_OFFSET) & OFFSET_MASK);
 
   if(DEBUG)
   {
