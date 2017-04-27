@@ -257,6 +257,8 @@ int PrintCache(Cache cache)
   int dirty;
   unsigned int tag;
   unsigned int data;
+  double hits = cache->hits;
+  double misses = cache->misses;
 
   lines = cache->lines;
   if(cache != NULL)
@@ -274,9 +276,9 @@ int PrintCache(Cache cache)
       }
       printf("\n");
   }
-    unsigned int hit_rate = cache->hits/(cache->hits + cache->misses);
+    double hit_rate = (hits/(hits + misses))*100;
 
-    printf("\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tCACHE WRITES: %i\n\n\tCACHE SIZE: %i Words\n\tBLOCK SIZE: %i Words\n\tNUM LINES: %i\n\tHIT RATE: %i\n\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->lines,hit_rate);
+    printf("\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tCACHE WRITES: %i\n\n\tCACHE SIZE: %i Words\n\tBLOCK SIZE: %i Words\n\tNUM LINES: %i\n\tHIT RATE: %f%%\n\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->lines,hit_rate);
   }
     return 0;
 }
