@@ -109,9 +109,9 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
     return 0;
   }
 
-  int block_address = ((address >> BYTE_OFFSET >> I_OFFSET) & I_BLOCK_MASK); //get block address
-  unsigned int tag = (address >> BYTE_OFFSET >> I_OFFSET >> I_INDEX); //get tag
-  int blockoffset = ((address >> BYTE_OFFSET) & OFFSET_MASK);
+  int block_address = ((address << BYTE_OFFSET >> I_OFFSET) & I_BLOCK_MASK); //get block address
+  unsigned int tag = (address << BYTE_OFFSET >> I_OFFSET >> I_INDEX); //get tag
+  int blockoffset = ((address << BYTE_OFFSET) & OFFSET_MASK);
 
   if(DEBUG)
   {
@@ -132,11 +132,14 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
     //for block size of 4, grab the 4 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
     //for block size of 16, grab the 16 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
     cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from main memory to cache
+
+    cache->blocks[block_address]->tag = tag;
+    cache->blocks[block_address]->valid = 1;
+
     return cache->blocks[block_address]->boffset[blockoffset]->data;
     //clock_cycles = clock_cycles + I_PENALTY
-    cache->blocks[block_address]->valid = 1;
-    cache->blocks[block_address]->tag = tag;
   }
+
 }
 
 int d_CacheRead(Cache cache, unsigned int address, unsigned int data)
@@ -271,8 +274,9 @@ int PrintCache(Cache cache)
       }
       printf("\n");
   }
+    unsigned int hit_rate = cache->hits/(cache->hits + cache->misses);
 
-    printf("\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tCACHE WRITES: %i\n\n\tCACHE SIZE: %i Words\n\tBLOCK SIZE: %i Words\n\tNUM LINES: %i\n\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->lines);
+    printf("\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tCACHE WRITES: %i\n\n\tCACHE SIZE: %i Words\n\tBLOCK SIZE: %i Words\n\tNUM LINES: %i\n\tHIT RATE: %i\n\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->lines,hit_rate);
   }
     return 0;
 }

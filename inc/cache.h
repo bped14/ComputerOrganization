@@ -12,13 +12,13 @@
 #define OFFSET_MASK 0x00000000 //16 words = f, 4 words = 3, 1 word = 0
 
 /* Cache Sizes in words*/
-#define I_CACHE_SIZE 32
+#define I_CACHE_SIZE 64
 #define D_CACHE_SIZE 64
 
 /* Block Size word alligned*/
-#define I_INDEX 4  //block index, 16 words = 1, 4 words = 2, 1 word = 4
+#define I_INDEX 6  //block index, 16 words = 1, 4 words = 2, 1 word = 5
 #define I_OFFSET 0 //block offset, 16 words = 4, 4 words = 2, 1 word = 0
-#define I_BLOCK_MASK 0x0000000f //16 words = 0, 4 words = 3, 1 word = f
+#define I_BLOCK_MASK 0x0000003f //16 words = 0, 4 words = 3, 1 word = f
 
 /*Block size word alligned*/
 #define D_INDEX 2  //block index, 16 words = 1, 4 words = 4, 1 word = 16

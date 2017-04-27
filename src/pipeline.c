@@ -1576,8 +1576,8 @@ int main(){
     d_CacheRead(d_Cache, address3, data2);
     d_CacheRead(d_Cache, address1, data1);
 
-    printf("d_Cache\n");
-    PrintCache(d_Cache);
+    //printf("d_Cache\n");
+    //PrintCache(d_Cache);
 
     return 0;
 }
