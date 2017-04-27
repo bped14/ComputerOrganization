@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "cache.h"
+#include "Load_Program.h"
 
 unsigned int write_buffer[BUFFER_SIZE] = {0};
 //Structs (Cache and Block and Boffset)
@@ -130,7 +131,7 @@ int iCacheRead(Cache cache, unsigned int address, unsigned int data)
     //perform main memory read
     //for block size of 4, grab the 4 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
     //for block size of 16, grab the 16 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
-    cache->blocks[block_address]->boffset[blockoffset]->data = data; //put data from main memory to cache
+    cache->blocks[block_address]->boffset[blockoffset]->data = memory[0]; //put data from main memory to cache
     //clock_cycles = clock_cycles + I_PENALTY
     cache->blocks[block_address]->valid = 1;
     cache->blocks[block_address]->tag = tag;
@@ -276,6 +277,8 @@ int PrintCache(Cache cache)
     return 0;
 }
 
+
+/*
 int main()
 {
   Cache iCache;
@@ -305,3 +308,5 @@ int main()
   printf("d_Cache\n");
   PrintCache(d_Cache);
 }
+
+*/

@@ -1562,28 +1562,32 @@ int main(){
         printf("Cycle Count:          %lu\n", cycleCount);
     }
 
-/*
     Cache iCache;
-    //Cache d_Cache;
+    Cache d_Cache;
 
     unsigned int data1 = 0x77654321;
     unsigned int data2 = 0x73656383;
     unsigned int address1 = 0x8764444;
-    unsigned int address2 = 0x00054321;
+    signed int address2 = 0x00054321;
     unsigned int address3 = 0x58354321;
-    unsigned int address4 = 0x52554321;
+    //unsigned int address4 = 0x52554444;
 
-    iCache = CreateCache(I_CACHE_SIZE, I_BLOCK_SIZE, WRITE_POLICY);
-    //d_Cache = CreateCache(D_CACHE_SIZE, D_BLOCK_SIZE, WRITE_POLICY);
-    iWriteCache(iCache, address1, data1);
-    iWriteCache(iCache, address2, data2);
+    iCache = CreateCache(I_CACHE_SIZE);
+    d_Cache = CreateCache(D_CACHE_SIZE);
     iCacheRead(iCache, address3, data2);
-    iCacheRead(iCache, address4, data1);
-    PrintCache(iCache);
-    //d_WriteCache(d_Cache, 0x00054321, 0x12345678);
-    //PrintCache(d_Cache);
+    iCacheRead(iCache, address3, data2);
+    iCacheRead(iCache, address1, data1);
 
-*/
+    printf("iCache\n");
+    PrintCache(iCache);
+
+    d_WriteCache(d_Cache, address1, data1);
+    d_WriteCache(d_Cache, address2, data2);
+    d_CacheRead(d_Cache, address3, data2);
+    d_CacheRead(d_Cache, address1, data1);
+
+    printf("d_Cache\n");
+    PrintCache(d_Cache);
 
     return 0;
 }
