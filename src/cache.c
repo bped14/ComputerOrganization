@@ -102,6 +102,7 @@ Cache CreateCache(int cache_size)
 
 unsigned int iCacheRead(Cache cache, unsigned int address)
 {
+  int i;
   /* Check inputs */
   if(cache == NULL)
   {
@@ -109,11 +110,9 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
     return 0;
   }
 
-  //address = address << BYTE_OFFSET; //multiply word address by 4 to make byte addressable
-
   int block_address = ((address >> I_OFFSET) & I_BLOCK_MASK); //get block address
   unsigned int tag = (address >> I_OFFSET >> I_INDEX); //get tag
-  int blockoffset = ((address >> BYTE_OFFSET) & OFFSET_MASK);
+  int blockoffset = (address & OFFSET_MASK);
 
   if(DEBUG)
   {
@@ -128,25 +127,40 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
   else //cache miss
   {
     cache->misses++;
-    cache->reads++;
+    cache->reads++; //memory read
 
     //perform main memory read
-    //for block size of 4, grab the 4 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
-    //for block size of 16, grab the 16 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
-    cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from main memory to cache
+    //block size of 1, grab 1 word and put in cache
+    //block size of 4, grab the 4 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
+    //block size of 16, grab the 16 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
+    if(BLOCK_WORDS == 1){cache->blocks[block_address]->boffset[blockoffset]->data = memory[address];} //put data from main memory to cach
+    int plus = 0;
+    int minus = 0;
+    if(BLOCK_WORDS != 1)
+    {
+      for(i=blockoffset;i<BLOCK_WORDS;i++)
+      {
+        cache->blocks[block_address]->boffset[blockoffset+plus]->data = memory[address+plus];
+        plus++;
+      }
+      for(i=blockoffset;i>=0;i--)
+      {
+        cache->blocks[block_address]->boffset[blockoffset-minus]->data = memory[address-minus];
+        minus++;
+      }
+    }
+
+    }
 
     cache->blocks[block_address]->tag = tag;
     cache->blocks[block_address]->valid = 1;
 
     return cache->blocks[block_address]->boffset[blockoffset]->data;
     //clock_cycles = clock_cycles + I_PENALTY
-  }
-
 }
 
-int d_CacheRead(Cache cache, unsigned int address, unsigned int data)
+unsigned int d_CacheRead(Cache cache, unsigned int address)
 {
-  unsigned int memory = 0x00000000;
   /* Check inputs */
   if(cache == NULL)
   {
@@ -154,9 +168,9 @@ int d_CacheRead(Cache cache, unsigned int address, unsigned int data)
     return 0;
   }
 
-  int block_address = ((address >> BYTE_OFFSET >> D_OFFSET) & D_BLOCK_MASK); //get block address
-  unsigned int tag = (address >> BYTE_OFFSET >> D_OFFSET >> D_INDEX); //get tag
-  int blockoffset = ((address >> BYTE_OFFSET) & OFFSET_MASK);
+  int block_address = ((address >> D_OFFSET) & D_BLOCK_MASK); //get block address
+  unsigned int tag = (address >> D_OFFSET >> D_INDEX); //get tag
+  int blockoffset = (address & OFFSET_MASK);
 
   if(DEBUG)
   {
@@ -166,29 +180,29 @@ int d_CacheRead(Cache cache, unsigned int address, unsigned int data)
   if(cache->blocks[block_address]->valid == 1 && cache->blocks[block_address]->tag == tag)
   {
     cache->hits++;
+    return cache->blocks[block_address]->boffset[blockoffset]->data;
     //take data with correct offset from cache and use it
   }
   else //cache miss
   {
     cache->misses++;
-    //cache->reads++; //memory read
+    cache->reads++; //memory read
 
     if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1) //check to see if data in cache is dirty
     {
       //write_buffer[] = entire cache block (how it will actually be implemented)
-      memory = cache->blocks[block_address]->boffset[blockoffset]->data; //put old data from cache into main memory
+      memory[address] = cache->blocks[block_address]->boffset[blockoffset]->data; //put old data from cache into main memory
       cache->blocks[block_address]->dirty = 0; //mark data as not dirty dirty
       //perform main memory read
       //for block size of 4, grab the 4 words with same block and tag
       //for block size of 16, grab the 16 words with same block and tag
-      cache->blocks[block_address]->boffset[blockoffset]->data = data; //put data from memory into cache
-      cache->reads++; //memory read
+      cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from memory into cache
       //clock_cycles = clock_cycles + PENALTY;
     }
     else if(cache->write_policy == 0)
     {
       //main memory needs to perform a read
-      cache->blocks[block_address]->boffset[blockoffset]->data = data; //put data from main memory read into cache
+      cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from main memory read into cache
       cache->reads++; //memory read
       //clock_cycles = clock_cycles + PENALTY
     }
@@ -196,14 +210,11 @@ int d_CacheRead(Cache cache, unsigned int address, unsigned int data)
     cache->blocks[block_address]->tag = tag;
 
   }
-
-  printf("memory: %i\n", memory);
   return 0;
 }
 
 int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
 {
-  unsigned int memory = 0x00000000;
   /* Validate inputs */
   if(cache == NULL)
   {
@@ -211,9 +222,9 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
     return 0;
   }
 
-  int block_address = ((address >> BYTE_OFFSET >> D_OFFSET) & D_BLOCK_MASK); //get block address
-  unsigned int tag = (address >> BYTE_OFFSET >> D_OFFSET >> D_INDEX); //get tag
-  int blockoffset = ((address >> BYTE_OFFSET) & OFFSET_MASK);
+  int block_address = ((address >> D_OFFSET) & D_BLOCK_MASK); //get block address
+  unsigned int tag = (address >> D_OFFSET >> D_INDEX); //get tag
+  int blockoffset = (address & OFFSET_MASK);
 
   if(DEBUG)
   {
@@ -224,7 +235,7 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
   if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1)
   {
     //will be implemented with buffer
-    memory = cache->blocks[block_address]->boffset[blockoffset]->data; //put old data into memory
+    memory[address] = cache->blocks[block_address]->boffset[blockoffset]->data; //put old data into memory
     //clock_cycles = clock_cycles + PENALTY_d;
   }
 
@@ -239,13 +250,12 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
   if(cache->write_policy == 0)
   {
     //write_buffer[0] = data;
-    memory = cache->blocks[block_address]->boffset[blockoffset]->data; //also write to main memory
+    memory[address] = cache->blocks[block_address]->boffset[blockoffset]->data; //also write to main memory
     //clock_cycles = clock_cycles + D_PENALTY
   }
 
   cache->writes++;
   cache->blocks[block_address]->valid = 1;
-  printf("MEMORY: %i\n",memory);
   return 0;
 }
 

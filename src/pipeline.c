@@ -1514,9 +1514,9 @@ void WB(){
 int main(){
     //initalize caches
     Cache iCache;
-    Cache d_Cache;
+    //Cache d_Cache;
     iCache = CreateCache(I_CACHE_SIZE);
-    d_Cache = CreateCache(D_CACHE_SIZE);
+    //d_Cache = CreateCache(D_CACHE_SIZE);
 
     //copy over memory
     Initialize_Simulation_Memory();
@@ -1561,20 +1561,20 @@ int main(){
         printf("Cycle Count:          %lu\n", cycleCount);
     }
 
-    unsigned int data1 = 0x77654321;
-    unsigned int data2 = 0x73656383;
-    unsigned int address1 = 0x8764444;
-    signed int address2 = 0x00054321;
-    unsigned int address3 = 0x58354321;
-    //unsigned int address4 = 0x52554444;
+    // unsigned int data1 = 0x77654321;
+    // unsigned int data2 = 0x73656383;
+    // unsigned int address1 = 0x8764444;
+    // signed int address2 = 0x00054321;
+    // unsigned int address3 = 0x58354321;
+    // //unsigned int address4 = 0x52554444;
 
-    printf("iCache\n");
+    printf("\niCache\n");
     PrintCache(iCache);
 
-    d_WriteCache(d_Cache, address1, data1);
-    d_WriteCache(d_Cache, address2, data2);
-    d_CacheRead(d_Cache, address3, data2);
-    d_CacheRead(d_Cache, address1, data1);
+    // d_WriteCache(d_Cache, address1, data1);
+    // d_WriteCache(d_Cache, address2, data2);
+    // d_CacheRead(d_Cache, address3);
+    // d_CacheRead(d_Cache, address1);
 
     //printf("d_Cache\n");
     //PrintCache(d_Cache);
