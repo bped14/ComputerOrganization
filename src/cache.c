@@ -8,9 +8,11 @@
 #include "cache.h"
 #include "Load_Program.h"
 
-unsigned int write_buffer[BUFFER_SIZE] = {0};
-//Structs (Cache and Block and Boffset)
+unsigned int write_buffer[BLOCK_WORDS]; //write buffer to hold data and save clock cycles
+bool fullBuff = false;
+unsigned int oldCount = 0;
 
+//Structs (Cache and Block and Boffset)
 struct Boffset_ {
   unsigned int data;
 };
@@ -191,7 +193,7 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
   {
     cache->misses++;
     cache->reads++; //memory read
-    cycleCount = cycleCount + 6;
+    cycleCount = cycleCount + 8;
 
     if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1) //check to see if data in cache is dirty
     {
@@ -256,7 +258,7 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
   {
     //will be implemented with buffer
     memory[address] = cache->blocks[block_address]->boffset[blockoffset]->data; //put old data into memory
-    //clock_cycles = clock_cycles + PENALTY_d;
+    cycleCount = cycleCount + 6;
   }
 
   if(cache->write_policy == 1)

@@ -3,8 +3,9 @@
 #ifndef CACHE_H
 #define CACHE_H
 
-/* for when you want to print debug messages */
-#define DEBUG 0
+#define DEBUG 0 /* for when you want to print debug messages */
+#define PROGRAM 2 //choose program for CPI
+
 #define WRITE_POLICY 0 //0 == WT and 1 == WB
 #define BUFFER_SIZE 1 //set equal to block size
 
