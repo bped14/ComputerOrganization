@@ -191,7 +191,7 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
   {
     cache->misses++;
     cache->reads++; //memory read
-    cycleCount = cycleCount + 12;
+    cycleCount = cycleCount + 6;
 
     if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1) //check to see if data in cache is dirty
     {
@@ -270,7 +270,7 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
   if(cache->write_policy == 0)
   {
     //write_buffer[0] = data;
-    cycleCount = cycleCount + 6;
+    //cycleCount = cycleCount + 6;
     memory[address] = cache->blocks[block_address]->boffset[blockoffset]->data; //also write to main memory
 
   }
