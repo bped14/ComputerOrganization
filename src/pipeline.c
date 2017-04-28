@@ -25,12 +25,10 @@ MEMWB_Reg MEMWB;
 
 //intialize program counter
 unsigned long pc = 0;
+
+//initialize caches
 Cache iCache;
 Cache d_Cache;
-
-//Cycle counter
-
-//unsigned int cycleCount = 0;
 
 //initalize End Of functions
 bool endOfFunction = false;
@@ -61,13 +59,11 @@ unsigned long reg[32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 /********************J_TYPE_FUNCTIONS*******************/
 
 void jump( long jumpAddr){
-    //printf("jump\n");
     pc = pc & 0xf0000000;
     pc = (pc >> 2) | (jumpAddr);
 }
 
-void jumpAligned( long jumpAddr){
-    //printf("jal\n");
+void jumpAligned( long jumpAddr){;
     reg[ra] = pc + 2;
     pc = pc & 0xf0000000;
     pc = (pc >> 2) | (jumpAddr);
@@ -76,7 +72,6 @@ void jumpAligned( long jumpAddr){
 /********************I_TYPE_FUNCTIONS*******************/
 
 int branchEqual( long rs,  long rt, short int immed){
-    //printf("beq\n");
     if(rs == rt){
         delBranch = 1;
         return (pc + immed);
@@ -88,10 +83,6 @@ int branchEqual( long rs,  long rt, short int immed){
 
 
 int branchNotEqual( long rs,  long rt, short int immed){
-    //printf("bne\n");
-    //printf("rs: %lu\n",rs);
-    //printf("rt: %lu\n",rt);
-    //printf("immed: %d\n",immed);
     if(rs != rt){
         delBranch = 1;
         return (pc + immed);
@@ -102,32 +93,26 @@ int branchNotEqual( long rs,  long rt, short int immed){
 }
 
 unsigned long addImmed( int rs, short int immed){
-    //printf("addi\n");
+
     unsigned long result;
     result = rs + immed;
     return result;
 }
 
 unsigned long addImmediateUnsigned( int rs, short int immed){
-    //printf("addiu\n");
-    //printf("rs: %u\n",rs);
-    //printf("immed: %d\n",immed);
     long result;
     result = rs + immed;
-    //printf("result: %d\n",result);
 
     return result;
 }
 
 unsigned long setLessThanImmed(long rs, short int immed){
-    //printf("slti\n");
     unsigned long result;
     result = (rs < immed)? 1 : 0;
     return result;
 }
 
 unsigned long setLessThanImmedUnsigned(unsigned int rs, short int immed){
-    //printf("sltiu\n");
     unsigned short int uImmed = immed;
     unsigned long result;
     result = (rs < uImmed)? 1 : 0;
@@ -135,19 +120,14 @@ unsigned long setLessThanImmedUnsigned(unsigned int rs, short int immed){
 }
 
 unsigned long andImmed( int rs, short int immed){
-    //printf("andi\n");
     unsigned long uImmed = immed;
-    //printf("uImmed: 0x%08lx\n", uImmed);
     unsigned long andData = uImmed & 0x0000ffff;
-    //printf("andData: 0x%08lx\n", andData);
     unsigned long result;
     result = rs & andData;
-    //printf("result: 0x%08lx\n", result);
     return result;
 }
 
 unsigned long orImmed( int rs, short int immed){
-    //printf("ori\n");
     unsigned short int uImmed = immed;
     unsigned long result;
     result = rs | (uint32_t)uImmed;
@@ -155,7 +135,6 @@ unsigned long orImmed( int rs, short int immed){
 }
 
 unsigned long xorImmed( int rs, short int immed){
-    //printf("xori\n");
     unsigned short int uImmed = immed;
     unsigned long result;
     result = rs ^ (uint32_t)uImmed;
@@ -163,7 +142,6 @@ unsigned long xorImmed( int rs, short int immed){
 }
 
 unsigned long loadUpperImmed(short int immed){
-    //printf("lui\n");
     unsigned short int uImmed = immed;
     unsigned long result;
     result = (uImmed << 16);
@@ -171,14 +149,10 @@ unsigned long loadUpperImmed(short int immed){
 }
 
 unsigned long loadWord( int rs, short int immed){
-    //printf("lw\n");
-    //printf("rs: %u\n",rs);
-    //printf("immed: %d\n",immed);
     unsigned long result;
     int address;
 
     address = (rs + immed)/4;
-    //result = memory[address];
 
     result = d_CacheRead(d_Cache, address);
 
@@ -187,12 +161,10 @@ unsigned long loadWord( int rs, short int immed){
 
 
 unsigned long loadByte( int rs, short int immed){
-    //printf("loadByte\n");
     unsigned long result;
     result = round((rs + immed)/4);
 
     result = d_CacheRead(d_Cache, result);
-    //result = memory[result];
 
     immed = (rs + immed) % 4;
     switch(immed){
@@ -212,7 +184,6 @@ unsigned long loadByte( int rs, short int immed){
             result = (result & 0xff000000) >> 24;
             break;
     }
-    //printf("byte to be loaded: 0x%08lx\n", result);
     if((result & 0x00000080) != 0){
         result = result | 0xffffff00;
         return result;
@@ -224,12 +195,10 @@ unsigned long loadByte( int rs, short int immed){
 
 
 unsigned long loadHalfWord( int rs, short int immed){
-    //printf("loadHalfWord\n");
     unsigned long result;
     result = round((rs + immed)/4);
 
     result = d_CacheRead(d_Cache, result);
-    //result = memory[result];
 
     immed = (rs + immed) % 2;
     switch(immed){
@@ -253,12 +222,10 @@ unsigned long loadHalfWord( int rs, short int immed){
 }
 
 unsigned long loadByteUnsigned( int rs, short int immed){
-    //printf("loadByteUnsigned\n");
     unsigned long result;
     result = round((rs + immed)/4);
 
     result = d_CacheRead(d_Cache, result);
-    //result = memory[result];
 
     immed = (rs + immed) % 4;
     switch(immed){
@@ -278,17 +245,14 @@ unsigned long loadByteUnsigned( int rs, short int immed){
             result = (result & 0xff000000) >> 24;
             break;
     }
-    //printf("result: 0x%08lx\n",result);
     return result;
 }
 
 unsigned long loadHalfWordUnsigned(unsigned int rs, short int immed){
-    //printf("loadHalfWordUnsigned\n");
     unsigned long result;
     result = round((rs + immed)/4);
 
     result = d_CacheRead(d_Cache, result);
-    //result = memory[result];
 
     immed = (rs + immed) % 2;
     switch(immed){
@@ -307,82 +271,76 @@ unsigned long loadHalfWordUnsigned(unsigned int rs, short int immed){
 
 
 void storeByte( int rs, int rt, short int immed){
-    //printf("storeByte\n");
     unsigned long result;
     unsigned long location;
+    unsigned long memAtLocation;
 
     result = reg[rt];
-    //printf("memory to be stored : 0x%08lx\n", result);
     location = round((rs + immed)/4);
-    //printf("location result : %lu\n", location);
 
     immed = (rs + immed) % 4;
-    //printf("immediate : %d\n", immed);
     result = result & 0x000000ff;
-    //printf("data in memory : 0x%08lx\n", memory[location]);
+
+    memAtLocation = d_CacheRead(d_Cache, location);
+
     switch(immed){
         case 3 :
-            memory[location] = memory[location] & 0xffffff00;
-            //printf("masked memory at location : 0x%08x\n", memory[location]);
-            memory[location] = memory[location] | result;
-            //printf("memory with new byte stored : 0x%08x\n", memory[location]);
+            memAtLocation = memAtLocation & 0xffffff00;
+            memAtLocation = memAtLocation | result;
             break;
 
         case 2 :
             result = result << 8;
-            memory[location] = memory[location] & 0xffff00ff;
-            //printf("masked memory at location : 0x%08x\n", memory[location]);
-            memory[location] = memory[location] | result;
-            //printf("memory with new byte stored : 0x%08x\n", memory[location]);
+            memAtLocation = memAtLocation & 0xffff00ff;
+            memAtLocation = memAtLocation | result;
             break;
 
         case 1 :
             result = result << 16;
-            memory[location] = memory[location] & 0xff00ffff;
-            //printf("masked memory at location : 0x%08x\n", memory[location]);
-            memory[location] = memory[location] | result;
-            //printf("memory with new byte stored : 0x%08x\n", memory[location]);
+            memAtLocation = memAtLocation & 0xff00ffff;
+            memAtLocation = memAtLocation | result;
             break;
 
         case 0 :
             result = result << 24;
-            memory[location] = memory[location] & 0x00ffffff;
-            //printf("masked memory at location : 0x%08x\n", memory[location]);
-            memory[location] = memory[location] | result;
-            //printf("memory with new byte stored : 0x%08x\n", memory[location]);
+            memAtLocation = memAtLocation & 0x00ffffff;
+            memAtLocation = memAtLocation | result;
             break;
     }
 
+    d_WriteCache(d_Cache, location, memAtLocation);
     storeByteHelper = 1;
     return;
 }
 
 
 void storeHalfWord( int rs,  int rt, short int immed){
-    //printf("storeHalf\n");
     unsigned long result;
     unsigned long location;
+    unsigned long memAtLocation;
+
 
     result = reg[rt];
     location = round((rs + immed)/4);
+
+    memAtLocation = d_CacheRead(d_Cache, location);
 
     immed = (rs + immed) % 2;
     result = result & 0x0000ffff;
     switch(immed){
         case 1 :
-            memory[location] = memory[location] & 0xffff0000;
-            memory[location] = memory[location] | result;
+            memAtLocation = memAtLocation & 0xffff0000;
+            memAtLocation = memAtLocation | result;
             break;
 
         case 0 :
             result = result << 16;
-            memory[location] = memory[location] & 0x0000ffff;
-            memory[location] = memory[location] | result;
+            memAtLocation = memAtLocation & 0x0000ffff;
+            memAtLocation = memAtLocation | result;
             break;
 
     }
-
-    //printf("stored mem: 0x%08x\n", memory[location]);
+    d_WriteCache(d_Cache, location, memAtLocation);
 
     storeHalfHelper = 1;
     return;
@@ -390,9 +348,6 @@ void storeHalfWord( int rs,  int rt, short int immed){
 
 
 unsigned long storeWord( int rs, short int immed){
-    //printf("sw\n");
-    //printf("rs: %u\n",rs);
-    //printf("immed: %d\n",immed);
     unsigned long result;
     result = rs + immed;
     result = result / 4;
@@ -401,7 +356,6 @@ unsigned long storeWord( int rs, short int immed){
 
 
 int branchLessThanZero(long rs, short int immed){
-    //printf("bltz\n");
     if(rs < 0){
         delBranch = 1;
         return (pc + immed);
@@ -412,7 +366,6 @@ int branchLessThanZero(long rs, short int immed){
 }
 
 int branchGreaterThanZero(int rs, short int immed){
-    //printf("bgtz\n");
     if(rs > 0){
         delBranch = 1;
         return (pc + immed);
@@ -436,22 +389,19 @@ int branchLessThanEqualZero(int rs, short int immed){
 /********************R_TYPE_FUNCTIONS*******************/
 
 unsigned long shiftLeftLogical( int rt,  int shamt){
-    //printf("sll\n");
     unsigned long result;
     result = rt << shamt;
     return result;
 }
 
 unsigned long shiftRightLogical( int rt,  int shamt){
-    //printf("srl\n");
     unsigned long result;
     result = rt >> shamt;
     return result;
 }
 
-//DONT FORGET TO TEST IF RS NEED TO BE SHIFTED RIGHT 2 TO ACCOUNT FOR WORD memory
+
 void jumpRegister( long rs){
-    //printf("jr\n");
     pc = rs;
     if(pc == 0){
         endOfFunction = true;
@@ -462,50 +412,42 @@ void jumpRegister( long rs){
 
 
 unsigned long addition( int rs,  int rt){
-    //printf("add\n");
     unsigned long result;
     result = rs + rt;
     return result;
 }
 
 unsigned long addUnsigned( int rs,  int rt){
-    //printf("addu\n");
     unsigned long result;
     result = rs + rt;
     return result;
 }
 
 unsigned long subtract( int rs,  int rt){
-    //printf("sub\n");
     unsigned long result;
     result = rs - rt;
     return result;
 }
 
 unsigned long subtractUnsigned(int rs, int rt){
-    //printf("subu\n");
     unsigned long result;
     result = rs - rt;
     return result;
 }
 
-//cant use just the word and() because it gets mad about the predefined variable and
 unsigned long andOperation( int rs,  int rt){
-    //printf("and\n");
     unsigned long result;
     result = rs & rt;
     return result;
 }
 
 unsigned long orOperation( int rs,  int rt){
-    //printf("or\n");
     unsigned long result;
     result = rs | rt;
     return result;
 }
 
 unsigned long xorOperation( int rs,  int rt){
-    //printf("xor\n");
     unsigned long result;
     result = rs ^ rt;
 
@@ -513,28 +455,24 @@ unsigned long xorOperation( int rs,  int rt){
 }
 
 unsigned long norOperation( int rs,  int rt){
-    //printf("nor\n");
     unsigned long result;
     result = !(rs | rt);
     return result;
 }
 
 unsigned long setLessThan(int rs, int rt){
-    //printf("slt\n");
     unsigned long result;
     result = (rs < rt)? 1:0;
     return result;
 }
 
 unsigned long setLessThanUnsigned(unsigned int rs, unsigned int rt){
-    //printf("sltu\n");
     unsigned long result;
     result = (rs < rt)? 1:0;
     return result;
 }
 
 int moveNonZero( int rs,  int rt){
-    //printf("movn\n");
     if(rt != 0){
         moveHelper = 0;
         return rs;
@@ -545,7 +483,6 @@ int moveNonZero( int rs,  int rt){
 }
 
 int moveZero( int rs,  int rt){
-    //printf("movz\n");
     if(rt == 0){
         moveHelper = 0;
         return rs;
@@ -556,7 +493,6 @@ int moveZero( int rs,  int rt){
 }
 
 unsigned long signExtendByte( int rt){
-
     if((rt & 0x00000080) != 0){
         rt = rt & 0x00000080;
         rt = rt | 0xffffff00;
@@ -579,10 +515,7 @@ unsigned long signExtendByte( int rt){
 *******************************************************************************/
 
 
-//sections up r type data
 void rtype(unsigned long rtypeData){
-    //printf("rtype\n");
-    //bit masking and shifting for each part of the r type
     IFID.Opcode = (rtypeData & 0xFC000000) >> 26;
     IFID.Rs = (rtypeData & 0x03E00000) >> 21;
     IFID.Rt = (rtypeData & 0x001F0000) >> 16;
@@ -594,8 +527,6 @@ void rtype(unsigned long rtypeData){
 
 //sections up i type data
 void itype(unsigned long itypeData){
-    //printf("itype\n");
-    //bit masking and shifting for each part of the i type
     IFID.Opcode = (itypeData & 0xFC000000) >> 26;
     IFID.Rs = (itypeData & 0x03E00000) >> 21;
     IFID.Rt = (itypeData & 0x001F0000) >> 16;
@@ -605,14 +536,11 @@ void itype(unsigned long itypeData){
 
 //sections up j type data
 void jtype(unsigned long jtypeData){
-    //printf("jtype\n");
-    //bit masking and shifting for each part of the i type
     IFID.Opcode = (jtypeData & 0xFC000000) >> 26;
     IFID.jumpaddress = (jtypeData & 0x03FFFFFF) >> 0;
     return;
 }
 
-//determine where to send the data based on the opcode
 void typeSelect(unsigned long machCode){
     IFID.Opcode = (machCode & 0xFC000000) >> 26;
 
@@ -691,7 +619,6 @@ void executeDetermination(){
 
         //R Type
     } else if(IFID.type == 3){
-        //decide what to do with r type inst based on its funct
         switch(IFID.funct){
 
             //add
@@ -1196,9 +1123,7 @@ void executeDetermination(){
 void execute(){
     //account for seb
     if(EXMEM.ALUop == seb){
-        //printf("sign extend\n");
         EXMEM.ALUresult = signExtendByte(EXMEM.RtValue);
-        //printf("ALUresult execute: 0x%08lx\n", EXMEM.ALUresult);
 
     } else {
         //switch on type
@@ -1395,7 +1320,6 @@ void execute(){
 }
 
 void memoryHelp(){
-    //printf("memoryHelp\n");
 
     if(MEMWB.regWrite){
         if(moveHelper == 1){
@@ -1403,15 +1327,10 @@ void memoryHelp(){
         } else {
             reg[MEMWB.WBRegister] = MEMWB.ALUresult;
         }
-        //printf("ALUresult: %ld\n",MEMWB.ALUresult);
-        //printf("WBRegister: %lu\n",MEMWB.WBRegister);
-        //printf("reg: %lu\n",reg[MEMWB.WBRegister]);
 
     } else if(MEMWB.memtoreg){        //lb,lh,lw,lbu,lhu,lwu
 
         reg[MEMWB.WBRegister] = MEMWB.ALUresult;
-        //printf("WBRegister: %lu\n",MEMWB.WBRegister);
-        //printf("reg data: \t\t0x%08lx\n",reg[MEMWB.WBRegister]);
 
     } else if(MEMWB.memwrite){      //sw
         if(storeByteHelper == 1){
@@ -1419,15 +1338,9 @@ void memoryHelp(){
         } else if(storeHalfHelper ==1){
             storeHalfHelper = 0;
         } else {
-            //printf("DataMemResult: %ld\n",MEMWB.DataMemResult/4);
-            //printf("WBRegister: %lu\n",MEMWB.WBRegister);
-            //printf("Memory data: \t\t 0x%08x\n",memory[MEMWB.DataMemResult/4]);
-
-            //memory[MEMWB.DataMemResult] = reg[MEMWB.WBRegister];
 
             d_WriteCache(d_Cache, MEMWB.DataMemResult, reg[MEMWB.WBRegister]);
 
-            //printf("Memory data: \t\t 0x%08x\n",memory[MEMWB.DataMemResult/4]);
         }
     }
     return;
@@ -1505,13 +1418,11 @@ void WB(){
     }
     if(MEMWB.type != 1){
         if((MEMWB.delayedBranch) != 0 && (delBranch == 2)){
-            //printf("delBranch = %d\n", delBranch);
             pc = MEMWB.delayedBranch;
             delBranch = 0;
         }
         if(delBranch == 1){
             delBranch++;
-            //printf("delBranch = %d\n", delBranch);
         }
         pc++;
     } else {
@@ -1531,8 +1442,6 @@ void WB(){
 
 int main(){
     //initalize caches
-    // Cache iCache;
-    // Cache d_Cache;
     iCache = CreateCache(I_CACHE_SIZE);
     d_Cache = CreateCache(D_CACHE_SIZE);
 
@@ -1542,13 +1451,10 @@ int main(){
     reg[sp] = memory[0];
     reg[fp] = memory[1];
     pc = memory[5];
-    //printf("%d\n", pc);
     pc--;
 
-    //printf("%04x\n\n", memory[pc]);
 
     while(pc != 0){
-        //printf("Current INST: %08x\n\n", memory[pc]);
         WB();
         IF(iCache);
         ID();
@@ -1578,21 +1484,8 @@ int main(){
         printf("Cycle Count:             %i\n", cycleCount);
     }
 
-    // unsigned int data1 = 0x00000021;
-    // unsigned int data2 = 0x00000022;
-    // unsigned int address1 = 0x00000004;
-    // signed int address2 = 0x00000005;
-    // unsigned int address3 = 0x00000007;
-    // unsigned int address4 = 0x00000008;
-
     printf("\niCache\n");
     PrintCache(iCache);
-
-    // d_WriteCache(d_Cache, address1, data1);
-    // d_WriteCache(d_Cache, address2, data2);
-    // d_CacheRead(d_Cache, address3);
-    // d_CacheRead(d_Cache, address4);
-    // d_CacheRead(d_Cache, address1);
 
     printf("d_Cache\n");
     PrintCache(d_Cache);
