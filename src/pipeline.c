@@ -27,7 +27,8 @@ MEMWB_Reg MEMWB;
 unsigned long pc = 0;
 
 //Cycle counter
-unsigned long cycleCount = 0;
+
+//unsigned int cycleCount = 0;
 
 //initalize End Of functions
 bool endOfFunction = false;
@@ -1517,8 +1518,6 @@ void WB(){
     return;
 }
 
-
-
 /******************************************************************************
 ███╗   ███╗  █████╗  ██╗ ███╗   ██╗
 ████╗ ████║ ██╔══██╗ ██║ ████╗  ██║
@@ -1531,9 +1530,9 @@ void WB(){
 int main(){
     //initalize caches
     Cache iCache;
-    Cache d_Cache;
+    //Cache d_Cache;
     iCache = CreateCache(I_CACHE_SIZE);
-    d_Cache = CreateCache(D_CACHE_SIZE);
+    //d_Cache = CreateCache(D_CACHE_SIZE);
 
     //copy over memory
     Initialize_Simulation_Memory();
@@ -1548,7 +1547,6 @@ int main(){
 
     while(pc != 0){
         //printf("Current INST: %08x\n\n", memory[pc]);
-
         WB();
         IF(iCache);
         ID();
@@ -1568,30 +1566,30 @@ int main(){
         printf("Memory Location 7 :   %d\n", memory[7]);
         printf("Memory Location 8 :   %d\n", memory[8]);
         printf("Memory Location 9 :   %d\n", memory[9]);
-        printf("Cycle Count:          %lu\n", cycleCount);
+        printf("Cycle Count:          %i\n", cycleCount);
     } else if(reg[fp] == 2200){
         printf("\n\n\n\nRESULTS:\n\n");
         printf("Memory Location 6 :   %d\n", memory[6]);
         printf("Memory Location 7 :   0x%08x\n", memory[7]);
         printf("Memory Location 8 :   0x%08x\n", memory[8]);
         printf("Memory Location 9 :   0x%08x\n", memory[9]);
-        printf("Cycle Count:          %lu\n", cycleCount);
+        printf("Cycle Count:             %i\n", cycleCount);
     }
 
-    unsigned int data1 = 0x77654321;
-    unsigned int data2 = 0x73656383;
-    unsigned int address1 = 0x8764444;
-    signed int address2 = 0x00054321;
-    unsigned int address3 = 0x58354321;
-    //unsigned int address4 = 0x52554444;
+    // unsigned int data1 = 0x77654321;
+    // unsigned int data2 = 0x73656383;
+    // unsigned int address1 = 0x8764444;
+    // signed int address2 = 0x00054321;
+    // unsigned int address3 = 0x58354321;
+    // unsigned int address4 = 0x52554444;
 
-    printf("iCache\n");
+    printf("\niCache\n");
     PrintCache(iCache);
 
-    d_WriteCache(d_Cache, address1, data1);
-    d_WriteCache(d_Cache, address2, data2);
-    d_CacheRead(d_Cache, address3, data2);
-    d_CacheRead(d_Cache, address1, data1);
+    // d_WriteCache(d_Cache, address1, data1);
+    // d_WriteCache(d_Cache, address2, data2);
+    // d_CacheRead(d_Cache, address3);
+    // d_CacheRead(d_Cache, address1);
 
     //printf("d_Cache\n");
     //PrintCache(d_Cache);
