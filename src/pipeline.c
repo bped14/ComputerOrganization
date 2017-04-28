@@ -172,8 +172,13 @@ unsigned long loadWord( int rs, short int immed){
     //printf("rs: %u\n",rs);
     //printf("immed: %d\n",immed);
     unsigned long result;
-    result = memory[(rs + immed)/4];
-    //printf("Memory location: %d\n", (rs + immed)/4);
+    int address;
+
+    address = (rs + immed)/4;
+    result = memory[address];
+
+    //result = d_CacheRead(d_Cache, address);
+
     return result;
 }
 
@@ -182,11 +187,11 @@ unsigned long loadByte( int rs, short int immed){
     //printf("loadByte\n");
     unsigned long result;
     result = round((rs + immed)/4);
-    //printf("memory location: %lu\n", result);
+
+    //result = d_CacheRead(d_Cache, result);
     result = memory[result];
-    //printf("data in memory : 0x%08lx\n", result);
+
     immed = (rs + immed) % 4;
-    //printf("immediate result : %d\n", immed);
     switch(immed){
         case 3 :
             result = (result & 0x000000ff);
@@ -219,7 +224,10 @@ unsigned long loadHalfWord( int rs, short int immed){
     //printf("loadHalfWord\n");
     unsigned long result;
     result = round((rs + immed)/4);
+
+    //result = d_CacheRead(d_Cache, result);
     result = memory[result];
+
     immed = (rs + immed) % 2;
     switch(immed){
         case 1 :
@@ -245,7 +253,10 @@ unsigned long loadByteUnsigned( int rs, short int immed){
     //printf("loadByteUnsigned\n");
     unsigned long result;
     result = round((rs + immed)/4);
+
+    //result = d_CacheRead(d_Cache, result);
     result = memory[result];
+
     immed = (rs + immed) % 4;
     switch(immed){
         case 3 :
@@ -272,7 +283,10 @@ unsigned long loadHalfWordUnsigned(unsigned int rs, short int immed){
     //printf("loadHalfWordUnsigned\n");
     unsigned long result;
     result = round((rs + immed)/4);
+
+    //result = d_CacheRead(d_Cache, result);
     result = memory[result];
+
     immed = (rs + immed) % 2;
     switch(immed){
         case 1 :
@@ -378,6 +392,7 @@ unsigned long storeWord( int rs, short int immed){
     //printf("immed: %d\n",immed);
     unsigned long result;
     result = rs + immed;
+    result = result / 4;
     return result;
 }
 
@@ -1405,7 +1420,9 @@ void memoryHelp(){
             //printf("WBRegister: %lu\n",MEMWB.WBRegister);
             //printf("Memory data: \t\t 0x%08x\n",memory[MEMWB.DataMemResult/4]);
 
-            memory[(MEMWB.DataMemResult / 4)] = reg[MEMWB.WBRegister];
+            memory[MEMWB.DataMemResult] = reg[MEMWB.WBRegister];
+
+            //d_WriteCache(d_Cache, MEMWB.DataMemResult, reg[MEMWB.WBRegister]);
 
             //printf("Memory data: \t\t 0x%08x\n",memory[MEMWB.DataMemResult/4]);
         }
