@@ -9,7 +9,6 @@
 #include "Load_Program.h"
 
 unsigned int write_buffer[BUFFER_SIZE] = {0};
-unsigned int dummyCount = 0;
 //Structs (Cache and Block and Boffset)
 
 struct Boffset_ {
@@ -161,11 +160,11 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
     cache->blocks[block_address]->valid = 1;
 
     return cache->blocks[block_address]->boffset[blockoffset]->data;
-    //clock_cycles = clock_cycles + I_PENALTY
 }
 
 unsigned int d_CacheRead(Cache cache, unsigned int address)
 {
+  int i = 0;
   /* Check inputs */
   if(cache == NULL)
   {
@@ -192,6 +191,7 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
   {
     cache->misses++;
     cache->reads++; //memory read
+    cycleCount = cycleCount + 12;
 
     if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1) //check to see if data in cache is dirty
     {
@@ -206,16 +206,31 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
     }
     else if(cache->write_policy == 0)
     {
-      //main memory needs to perform a read
-      cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from main memory read into cache
-      cache->reads++; //memory read
-      //clock_cycles = clock_cycles + PENALTY
+      //perform main memory read
+      if(BLOCK_WORDS == 1){cache->blocks[block_address]->boffset[blockoffset]->data = memory[address];} //put data from main memory read into cache
+
+      int plus = 0;
+      int minus = 0;
+      if(BLOCK_WORDS != 1)
+      {
+        for(i=blockoffset;i<BLOCK_WORDS;i++)
+        {
+          cache->blocks[block_address]->boffset[blockoffset+plus]->data = memory[address+plus];
+          plus++;
+        }
+        for(i=blockoffset;i>=0;i--)
+        {
+          cache->blocks[block_address]->boffset[blockoffset-minus]->data = memory[address-minus];
+          minus++;
+        }
+      }
     }
     cache->blocks[block_address]->valid = 1;
     cache->blocks[block_address]->tag = tag;
 
   }
-  return 0;
+
+  return cache->blocks[block_address]->boffset[blockoffset]->data;
 }
 
 int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
@@ -255,8 +270,9 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
   if(cache->write_policy == 0)
   {
     //write_buffer[0] = data;
+    cycleCount = cycleCount + 6;
     memory[address] = cache->blocks[block_address]->boffset[blockoffset]->data; //also write to main memory
-    //clock_cycles = clock_cycles + D_PENALTY
+
   }
 
   cache->writes++;
@@ -297,7 +313,6 @@ int PrintCache(Cache cache)
 
     printf("\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tCACHE WRITES: %i\n\n\tCACHE SIZE: %i Words\n\tBLOCK SIZE: %i Words\n\tNUM LINES: %i\n\tHIT RATE: %f%%\n\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->lines,hit_rate);
   }
-    printf("dummyCount: %i\n",dummyCount);
     return 0;
 }
 

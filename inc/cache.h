@@ -13,7 +13,7 @@
 
 /* Cache Sizes in words*/
 #define I_CACHE_SIZE 16
-#define D_CACHE_SIZE 64
+#define D_CACHE_SIZE 256
 
 /* Block Size word alligned*/
 #define I_INDEX 4  //block index, 16 words = 0, 4 words = 2, 1 word = 4
@@ -21,9 +21,9 @@
 #define I_BLOCK_MASK 0x0000000f //16 words = 0, 4 words = 3, 1 word = f
 
 /*Block size word alligned*/
-#define D_INDEX 2  //block index, 16 words = 1, 4 words = 4, 1 word = 16
-#define D_OFFSET 2 //block offset, 16 words = 4, 4 words = 2, 1 word = 0
-#define D_BLOCK_MASK 0x00000003 //16 words = 0, 4 words = 3, 1 word = f
+#define D_INDEX 7  //block index, 16 words = 1, 4 words = 4, 1 word = 16
+#define D_OFFSET 0 //block offset, 16 words = 4, 4 words = 2, 1 word = 0
+#define D_BLOCK_MASK 0x0000007f //16 words = 0, 4 words = 3, 1 word = f
 
 #define I_PENALTY 8 //1 word block = 8, 4 word block = 14, 16 word block = 38
 #define D_PENALTY 6 //1 word block = 6, 4 word block = 12, 16 word block = 36
