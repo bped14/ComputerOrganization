@@ -27,7 +27,8 @@ MEMWB_Reg MEMWB;
 unsigned long pc = 0;
 
 //Cycle counter
-unsigned long cycleCount = 0;
+
+//unsigned int cycleCount = 0;
 
 //initalize End Of functions
 bool endOfFunction = false;
@@ -1500,8 +1501,6 @@ void WB(){
     return;
 }
 
-
-
 /******************************************************************************
 ███╗   ███╗  █████╗  ██╗ ███╗   ██╗
 ████╗ ████║ ██╔══██╗ ██║ ████╗  ██║
@@ -1531,7 +1530,6 @@ int main(){
 
     while(pc != 0){
         //printf("Current INST: %08x\n\n", memory[pc]);
-
         WB();
         IF(iCache);
         ID();
@@ -1551,14 +1549,14 @@ int main(){
         printf("Memory Location 7 :   %d\n", memory[7]);
         printf("Memory Location 8 :   %d\n", memory[8]);
         printf("Memory Location 9 :   %d\n", memory[9]);
-        printf("Cycle Count:          %lu\n", cycleCount);
+        printf("Cycle Count:          %i\n", cycleCount);
     } else if(reg[fp] == 2200){
         printf("\n\n\n\nRESULTS:\n\n");
         printf("Memory Location 6 :   %d\n", memory[6]);
         printf("Memory Location 7 :   0x%08x\n", memory[7]);
         printf("Memory Location 8 :   0x%08x\n", memory[8]);
         printf("Memory Location 9 :   0x%08x\n", memory[9]);
-        printf("Cycle Count:          %lu\n", cycleCount);
+        printf("Cycle Count:             %i\n", cycleCount);
     }
 
     // unsigned int data1 = 0x77654321;
@@ -1566,7 +1564,7 @@ int main(){
     // unsigned int address1 = 0x8764444;
     // signed int address2 = 0x00054321;
     // unsigned int address3 = 0x58354321;
-    // //unsigned int address4 = 0x52554444;
+    // unsigned int address4 = 0x52554444;
 
     printf("\niCache\n");
     PrintCache(iCache);

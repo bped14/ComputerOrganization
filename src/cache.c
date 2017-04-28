@@ -2,11 +2,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <assert.h>
 #include "cache.h"
 #include "Load_Program.h"
 
 unsigned int write_buffer[BUFFER_SIZE] = {0};
+unsigned int dummyCount = 0;
 //Structs (Cache and Block and Boffset)
 
 struct Boffset_ {
@@ -103,6 +106,7 @@ Cache CreateCache(int cache_size)
 unsigned int iCacheRead(Cache cache, unsigned int address)
 {
   int i;
+  //cycleCount = cycleCount + 1;
   /* Check inputs */
   if(cache == NULL)
   {
@@ -128,12 +132,13 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
   {
     cache->misses++;
     cache->reads++; //memory read
-
+    cycleCount = cycleCount + 14;
     //perform main memory read
     //block size of 1, grab 1 word and put in cache
     //block size of 4, grab the 4 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
     //block size of 16, grab the 16 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
     if(BLOCK_WORDS == 1){cache->blocks[block_address]->boffset[blockoffset]->data = memory[address];} //put data from main memory to cach
+
     int plus = 0;
     int minus = 0;
     if(BLOCK_WORDS != 1)
@@ -292,6 +297,7 @@ int PrintCache(Cache cache)
 
     printf("\n\tCACHE HITS: %i\n\tCACHE MISSES: %i\n\tMEMORY READS: %i\n\tCACHE WRITES: %i\n\n\tCACHE SIZE: %i Words\n\tBLOCK SIZE: %i Words\n\tNUM LINES: %i\n\tHIT RATE: %f%%\n\n", cache->hits, cache->misses, cache->reads, cache->writes, cache->cache_size, cache->block_size, cache->lines,hit_rate);
   }
+    printf("dummyCount: %i\n",dummyCount);
     return 0;
 }
 
