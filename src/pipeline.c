@@ -25,6 +25,8 @@ MEMWB_Reg MEMWB;
 
 //intialize program counter
 unsigned long pc = 0;
+Cache iCache;
+Cache d_Cache;
 
 //Cycle counter
 
@@ -176,9 +178,9 @@ unsigned long loadWord( int rs, short int immed){
     int address;
 
     address = (rs + immed)/4;
-    result = memory[address];
+    //result = memory[address];
 
-    //result = d_CacheRead(d_Cache, address);
+    result = d_CacheRead(d_Cache, address);
 
     return result;
 }
@@ -189,8 +191,8 @@ unsigned long loadByte( int rs, short int immed){
     unsigned long result;
     result = round((rs + immed)/4);
 
-    //result = d_CacheRead(d_Cache, result);
-    result = memory[result];
+    result = d_CacheRead(d_Cache, result);
+    //result = memory[result];
 
     immed = (rs + immed) % 4;
     switch(immed){
@@ -226,8 +228,8 @@ unsigned long loadHalfWord( int rs, short int immed){
     unsigned long result;
     result = round((rs + immed)/4);
 
-    //result = d_CacheRead(d_Cache, result);
-    result = memory[result];
+    result = d_CacheRead(d_Cache, result);
+    //result = memory[result];
 
     immed = (rs + immed) % 2;
     switch(immed){
@@ -255,8 +257,8 @@ unsigned long loadByteUnsigned( int rs, short int immed){
     unsigned long result;
     result = round((rs + immed)/4);
 
-    //result = d_CacheRead(d_Cache, result);
-    result = memory[result];
+    result = d_CacheRead(d_Cache, result);
+    //result = memory[result];
 
     immed = (rs + immed) % 4;
     switch(immed){
@@ -285,8 +287,8 @@ unsigned long loadHalfWordUnsigned(unsigned int rs, short int immed){
     unsigned long result;
     result = round((rs + immed)/4);
 
-    //result = d_CacheRead(d_Cache, result);
-    result = memory[result];
+    result = d_CacheRead(d_Cache, result);
+    //result = memory[result];
 
     immed = (rs + immed) % 2;
     switch(immed){
@@ -1421,9 +1423,9 @@ void memoryHelp(){
             //printf("WBRegister: %lu\n",MEMWB.WBRegister);
             //printf("Memory data: \t\t 0x%08x\n",memory[MEMWB.DataMemResult/4]);
 
-            memory[MEMWB.DataMemResult] = reg[MEMWB.WBRegister];
+            //memory[MEMWB.DataMemResult] = reg[MEMWB.WBRegister];
 
-            //d_WriteCache(d_Cache, MEMWB.DataMemResult, reg[MEMWB.WBRegister]);
+            d_WriteCache(d_Cache, MEMWB.DataMemResult, reg[MEMWB.WBRegister]);
 
             //printf("Memory data: \t\t 0x%08x\n",memory[MEMWB.DataMemResult/4]);
         }
@@ -1529,8 +1531,8 @@ void WB(){
 
 int main(){
     //initalize caches
-    Cache iCache;
-    Cache d_Cache;
+    // Cache iCache;
+    // Cache d_Cache;
     iCache = CreateCache(I_CACHE_SIZE);
     d_Cache = CreateCache(D_CACHE_SIZE);
 
@@ -1576,21 +1578,21 @@ int main(){
         printf("Cycle Count:             %i\n", cycleCount);
     }
 
-    unsigned int data1 = 0x00000021;
-    unsigned int data2 = 0x00000022;
-    unsigned int address1 = 0x00000004;
-    signed int address2 = 0x00000005;
-    unsigned int address3 = 0x00000007;
-    unsigned int address4 = 0x00000008;
+    // unsigned int data1 = 0x00000021;
+    // unsigned int data2 = 0x00000022;
+    // unsigned int address1 = 0x00000004;
+    // signed int address2 = 0x00000005;
+    // unsigned int address3 = 0x00000007;
+    // unsigned int address4 = 0x00000008;
 
     printf("\niCache\n");
     PrintCache(iCache);
 
-    d_WriteCache(d_Cache, address1, data1);
-    d_WriteCache(d_Cache, address2, data2);
-    d_CacheRead(d_Cache, address3);
-    d_CacheRead(d_Cache, address4);
-    d_CacheRead(d_Cache, address1);
+    // d_WriteCache(d_Cache, address1, data1);
+    // d_WriteCache(d_Cache, address2, data2);
+    // d_CacheRead(d_Cache, address3);
+    // d_CacheRead(d_Cache, address4);
+    // d_CacheRead(d_Cache, address1);
 
     printf("d_Cache\n");
     PrintCache(d_Cache);
