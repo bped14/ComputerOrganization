@@ -1440,6 +1440,8 @@ void WB(){
 
 int main(){
     //initalize caches
+    double instructions;
+    double cpi;
     iCache = CreateCache(I_CACHE_SIZE);
     d_Cache = CreateCache(D_CACHE_SIZE);
 
@@ -1487,6 +1489,18 @@ int main(){
 
     printf("d_Cache\n");
     PrintCache(d_Cache);
+
+    if(PROGRAM == 1)
+    {
+      instructions = 474173;
+    }
+    else if(PROGRAM == 2)
+    {
+      instructions = 12179;
+    }
+
+    cpi = (cycleCount/instructions);
+    printf("\tCPI: %f\n",cpi);
 
     return 0;
 }

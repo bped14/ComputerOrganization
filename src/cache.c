@@ -8,9 +8,17 @@
 #include "cache.h"
 #include "Load_Program.h"
 
-unsigned int write_buffer[BUFFER_SIZE] = {0};
-//Structs (Cache and Block and Boffset)
+//GLOBALS
+unsigned int early_buffer[BLOCK_WORDS]; //write buffer to hold data and save clock cycles
+bool isFull = false;
+unsigned int oldCount = 0;
+int diff = 0;
+unsigned int oldAddress = 0;
+unsigned int oldBlockaddress = 0;
+int buffPenalty = 0;
+int oldBlockoffset = 0;
 
+//Structs (Cache and Block and Boffset)
 struct Boffset_ {
   unsigned int data;
 };
@@ -105,7 +113,9 @@ Cache CreateCache(int cache_size)
 unsigned int iCacheRead(Cache cache, unsigned int address)
 {
   int i;
-  //cycleCount = cycleCount + 1;
+  int plus = 0;
+  int minus = 0;
+
   /* Check inputs */
   if(cache == NULL)
   {
@@ -113,9 +123,35 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
     return 0;
   }
 
+  if(isFull == true)
+  {
+    diff = cycleCount - oldCount;
+    if(diff >= buffPenalty)
+    {
+      for(i=oldBlockoffset;i<BLOCK_WORDS;i++) //going from offset to offset size
+      {
+        cache->blocks[oldBlockaddress]->boffset[oldBlockoffset+plus]->data = memory[oldAddress+plus];
+        plus++;
+      }
+      plus = 0;
+    }
+    if(diff < buffPenalty)
+    {
+      cycleCount = cycleCount + diff;
+      for(i=oldBlockoffset;i<BLOCK_WORDS;i++) //going from offset to offset size
+      {
+        cache->blocks[oldBlockaddress]->boffset[oldBlockoffset+plus]->data = memory[oldAddress+plus];
+        plus++;
+      }
+      plus = 0;
+    }
+    isFull = false;
+  }
+
   int block_address = ((address >> I_OFFSET) & I_BLOCK_MASK); //get block address
   unsigned int tag = (address >> I_OFFSET >> I_INDEX); //get tag
   int blockoffset = (address & OFFSET_MASK);
+  buffPenalty = ((BLOCK_WORDS-1) - blockoffset)*2;
 
   if(DEBUG)
   {
@@ -131,26 +167,33 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
   {
     cache->misses++;
     cache->reads++; //memory read
-    cycleCount = cycleCount + 14;
+    //cycleCount = cycleCount + 14;
     //perform main memory read
     //block size of 1, grab 1 word and put in cache
     //block size of 4, grab the 4 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
     //block size of 16, grab the 16 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
     if(BLOCK_WORDS == 1){cache->blocks[block_address]->boffset[blockoffset]->data = memory[address];} //put data from main memory to cach
 
-    int plus = 0;
-    int minus = 0;
     if(BLOCK_WORDS != 1)
     {
-      for(i=blockoffset;i<BLOCK_WORDS;i++)
-      {
-        cache->blocks[block_address]->boffset[blockoffset+plus]->data = memory[address+plus];
-        plus++;
-      }
-      for(i=blockoffset;i>=0;i--)
+      for(i=blockoffset;i>=0;i--) //going from offset to zero
       {
         cache->blocks[block_address]->boffset[blockoffset-minus]->data = memory[address-minus];
         minus++;
+      }
+      for(i=blockoffset;i<BLOCK_WORDS;i++) //going from offset to offset size
+      {
+        if(isFull == false)
+        {
+        early_buffer[plus] = memory[address + plus];
+        isFull = true;
+        oldCount = cycleCount;
+        oldBlockaddress = block_address;
+        oldBlockoffset = blockoffset;
+        oldAddress = address;
+        //cache->blocks[block_address]->boffset[blockoffset+plus]->data = memory[address+plus];
+        plus++;
+        }
       }
     }
 
@@ -191,7 +234,7 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
   {
     cache->misses++;
     cache->reads++; //memory read
-    cycleCount = cycleCount + 6;
+    cycleCount = cycleCount + 8;
 
     if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1) //check to see if data in cache is dirty
     {
@@ -213,15 +256,15 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
       int minus = 0;
       if(BLOCK_WORDS != 1)
       {
-        for(i=blockoffset;i<BLOCK_WORDS;i++)
-        {
-          cache->blocks[block_address]->boffset[blockoffset+plus]->data = memory[address+plus];
-          plus++;
-        }
         for(i=blockoffset;i>=0;i--)
         {
           cache->blocks[block_address]->boffset[blockoffset-minus]->data = memory[address-minus];
           minus++;
+        }
+        for(i=blockoffset;i<BLOCK_WORDS;i++)
+        {
+          cache->blocks[block_address]->boffset[blockoffset+plus]->data = memory[address+plus];
+          plus++;
         }
       }
     }
@@ -256,7 +299,7 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
   {
     //will be implemented with buffer
     memory[address] = cache->blocks[block_address]->boffset[blockoffset]->data; //put old data into memory
-    //clock_cycles = clock_cycles + PENALTY_d;
+    cycleCount = cycleCount + 6;
   }
 
   if(cache->write_policy == 1)
