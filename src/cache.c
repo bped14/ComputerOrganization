@@ -131,6 +131,7 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
       for(i=oldBlockoffset;i<BLOCK_WORDS;i++) //going from offset to offset size
       {
         cache->blocks[oldBlockaddress]->boffset[oldBlockoffset+plus]->data = memory[oldAddress+plus];
+        //printf("early_buffer1: %i\n",early_buffer[plus]);
         plus++;
       }
       plus = 0;
@@ -141,6 +142,7 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
       for(i=oldBlockoffset;i<BLOCK_WORDS;i++) //going from offset to offset size
       {
         cache->blocks[oldBlockaddress]->boffset[oldBlockoffset+plus]->data = memory[oldAddress+plus];
+        //printf("early_buffer2: %i\n",early_buffer[plus]);
         plus++;
       }
       plus = 0;
@@ -176,16 +178,17 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
 
     if(BLOCK_WORDS != 1)
     {
-      for(i=blockoffset;i>=0;i--) //going from offset to zero
+      for(i=blockoffset;i>=0;i--) //going from offset to zero, putting only what you need
       {
         cache->blocks[block_address]->boffset[blockoffset-minus]->data = memory[address-minus];
         minus++;
       }
-      for(i=blockoffset;i<BLOCK_WORDS;i++) //going from offset to offset size
+      for(i=blockoffset;i<BLOCK_WORDS;i++) //going from offset to offset size, putting rest in buffer
       {
         if(isFull == false)
         {
         early_buffer[plus] = memory[address + plus];
+        // printf("eBUFF: %i, plus: %i\n",early_buffer[plus],plus);
         isFull = true;
         oldCount = cycleCount;
         oldBlockaddress = block_address;
@@ -313,7 +316,7 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
   if(cache->write_policy == 0)
   {
     //write_buffer[0] = data;
-    //cycleCount = cycleCount + 6;
+    cycleCount = cycleCount + 6;
     memory[address] = cache->blocks[block_address]->boffset[blockoffset]->data; //also write to main memory
 
   }
