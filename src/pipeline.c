@@ -192,8 +192,6 @@ unsigned long loadByte( int rs, short int immed){
     }
 }
 
-
-
 unsigned long loadHalfWord( int rs, short int immed){
     unsigned long result;
     result = round((rs + immed)/4);
