@@ -9,22 +9,22 @@
 #define WRITE_POLICY 0 //0 == WT and 1 == WB
 #define BUFFER_SIZE 1 //set equal to block size
 
-#define BLOCK_WORDS 1 //how many words you want in block
-#define OFFSET_MASK 0x00000000 //block offset mask, 16 words = f, 4 words = 3, 1 word = 0
+#define BLOCK_WORDS 4 //how many words you want in block
+#define OFFSET_MASK 0x00000003 //block offset mask, 16 words = f, 4 words = 3, 1 word = 0
 
 /* Cache Sizes in words*/
 #define I_CACHE_SIZE 64
 #define D_CACHE_SIZE 32
 
 /* Block Size word alligned*/
-#define I_INDEX 6  //block index, 16 words = 0, 4 words = 2, 1 word = 4
-#define I_OFFSET 0 //block offset, 16 words = 4, 4 words = 2, 1 word = 0
-#define I_BLOCK_MASK 0x0000003f //16 words = 0, 4 words = 3, 1 word = f
+#define I_INDEX 4  //block index, 16 words = 0, 4 words = 2, 1 word = 4
+#define I_OFFSET 2 //block offset, 16 words = 4, 4 words = 2, 1 word = 0
+#define I_BLOCK_MASK 0x0000000f //16 words = 0, 4 words = 3, 1 word = f
 
 /*Block size word alligned*/
-#define D_INDEX 5  //block index, 16 words = 1, 4 words = 4, 1 word = 16
-#define D_OFFSET 0 //block offset, 16 words = 4, 4 words = 2, 1 word = 0
-#define D_BLOCK_MASK 0x0000001f //16 words = 0, 4 words = 3, 1 word = f
+#define D_INDEX 3  //block index, 16 words = 1, 4 words = 4, 1 word = 16
+#define D_OFFSET 2 //block offset, 16 words = 4, 4 words = 2, 1 word = 0
+#define D_BLOCK_MASK 0x00000007 //16 words = 0, 4 words = 3, 1 word = f
 
 #define I_PENALTY 8 //1 word block = 8, 4 word block = 14, 16 word block = 38
 #define D_PENALTY 6 //1 word block = 6, 4 word block = 12, 16 word block = 36
