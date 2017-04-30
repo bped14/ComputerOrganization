@@ -9,8 +9,7 @@
 #include "Load_Program.h"
 
 //GLOBALS
-unsigned int early_buffer[BLOCK_WORDS]; //write buffer to hold data and save clock cycles
-bool isFull = false;
+unsigned int write_buffer[BLOCK_WORDS]; //write buffer to hold data and save clock cycles
 unsigned int oldCount = 0;
 int diff = 0;
 unsigned int oldAddress = 0;
@@ -123,8 +122,6 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
     return 0;
   }
 
-  if(isFull == true)
-  {
     diff = cycleCount - oldCount;
     if(diff >= buffPenalty)
     {
@@ -147,8 +144,6 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
       }
       plus = 0;
     }
-    isFull = false;
-  }
 
   int block_address = ((address >> I_OFFSET) & I_BLOCK_MASK); //get block address
   unsigned int tag = (address >> I_OFFSET >> I_INDEX); //get tag
@@ -169,7 +164,7 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
   {
     cache->misses++;
     cache->reads++; //memory read
-    //cycleCount = cycleCount + 14;
+    //cycleCount = cycleCount + 8;
     //perform main memory read
     //block size of 1, grab 1 word and put in cache
     //block size of 4, grab the 4 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
@@ -178,26 +173,17 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
 
     if(BLOCK_WORDS != 1)
     {
-      for(i=blockoffset;i>=0;i--) //going from offset to zero, putting only what you need
+      for(i=blockoffset;i>=0;i--) //going from offset to zero, putting only what you need in cache
       {
         cache->blocks[block_address]->boffset[blockoffset-minus]->data = memory[address-minus];
         minus++;
       }
-      for(i=blockoffset;i<BLOCK_WORDS;i++) //going from offset to offset size, putting rest in buffer
-      {
-        if(isFull == false)
-        {
-        early_buffer[plus] = memory[address + plus];
-        // printf("eBUFF: %i, plus: %i\n",early_buffer[plus],plus);
-        isFull = true;
         oldCount = cycleCount;
         oldBlockaddress = block_address;
         oldBlockoffset = blockoffset;
         oldAddress = address;
         //cache->blocks[block_address]->boffset[blockoffset+plus]->data = memory[address+plus];
         plus++;
-        }
-      }
     }
 
     }
