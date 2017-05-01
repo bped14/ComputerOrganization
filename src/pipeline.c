@@ -72,6 +72,7 @@ void jumpAligned( long jumpAddr){;
 /********************I_TYPE_FUNCTIONS*******************/
 
 int branchEqual( long rs,  long rt, short int immed){
+    cycleCount += 2;
     if(rs == rt){
         delBranch = 1;
         return (pc + immed);
@@ -83,6 +84,7 @@ int branchEqual( long rs,  long rt, short int immed){
 
 
 int branchNotEqual( long rs,  long rt, short int immed){
+    cycleCount += 2;
     if(rs != rt){
         delBranch = 1;
         return (pc + immed);
