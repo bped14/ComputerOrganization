@@ -1500,6 +1500,10 @@ int main(){
     {
       instructions = 12179;
     }
+    else if(PROGRAM == 3)
+    {
+      instructions = INSTRUCTION_COUNT3;
+    }
 
     cpi = (cycleCount/instructions);
     printf("\tCPI: %f\n",cpi);

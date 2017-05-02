@@ -5,16 +5,19 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <math.h>
 #include "cache.h"
 #include "Load_Program.h"
 
 //GLOBALS
-unsigned int WT_[1] = {0}; //WT buffer
-unsigned int WB_[BLOCK_WORDS] = {0}; //WB buffer
+//unsigned int WT_[1] = {0}; //WT buffer
+//unsigned int WB_[BLOCK_WORDS] = {0}; //WB buffer
 unsigned int oldCount_iRead = 0;
 unsigned int oldCount_dRead = 0;
+
 unsigned int oldCount_WT = 0;
 unsigned int oldCount_WB = 0;
+
 unsigned int oldAddress_i = 0;
 unsigned int oldBlockaddress_i = 0;
 int oldBlockoffset_i = 0;
@@ -24,13 +27,57 @@ unsigned int oldAddress_d = 0;
 unsigned int oldBlockaddress_d = 0;
 unsigned int oldBlockoffset_d = 0;
 
-unsigned int oldAddress_WT = 0;
-unsigned int oldAddress_WB = 0;
+unsigned int oldCount_dRead1 = 0;
+unsigned int oldBlockaddress_d1 = 0;
+unsigned int oldBlockoffset_d1 = 0;
+unsigned int oldAddress_d1 = 0;
 
 unsigned int iPenalty = 0;
 unsigned int dPenalty = 0;
 
 bool WT_full = false;
+bool WB_full = false;
+
+/*Function to find block offsets and indexes */
+int blockindexoffset(int block_size, int cache_size)
+{
+  int indexoffset = log(cache_size/block_size)/log(2);
+  return indexoffset;
+}
+
+unsigned int blockindexmask(int block_size, int cache_size)
+{
+  int blockmask = pow(2,log(cache_size/block_size)/log(2))-1;
+  return blockmask;
+}
+
+int blockoffset(int block_size)
+{
+  int offset = log(block_size)/log(2);
+  return offset;
+}
+
+unsigned int blockoffsetmask(int block_size)
+{
+  unsigned int mask;
+  switch(block_size)
+  {
+    case 1:
+      mask = 0x00000000;
+      break;
+    case 4:
+      mask = 0x00000003;
+      break;
+    case 16:
+      mask = 0x0000000f;
+      break;
+    default:
+      break;
+  }
+  return mask;
+}
+
+
 
 //Structs (Cache and Block and Boffset)
 struct Boffset_ {
@@ -102,8 +149,7 @@ Cache CreateCache(int cache_size)
   cache->blocks = (Block*) malloc(sizeof(Block) * cache->lines);
   assert(cache->blocks != 0);
 
-  //initialize blocks
-  //fill valid and dirty bits with zero
+  //initialize blocks, fill valid and dirty bits with zero
 
   for(i=0; i<cache->lines; i++)
   {
@@ -129,6 +175,12 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
   int i;
   int plus = 0;
   int minus = 0;
+
+  int Ioffset = blockoffset(BLOCK_WORDS);
+  unsigned int Iblockmask = blockindexmask(BLOCK_WORDS,I_CACHE_SIZE);
+  int Iindex = blockindexoffset(BLOCK_WORDS,I_CACHE_SIZE);
+  unsigned int offsetmask = blockoffsetmask(BLOCK_WORDS);
+
   /* Check inputs */
   if(cache == NULL)
   {
@@ -159,9 +211,9 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
       iPenalty = 0;
     }
 
-  int block_address = ((address >> I_OFFSET) & I_BLOCK_MASK); //get block address
-  unsigned int tag = (address >> I_OFFSET >> I_INDEX); //get tag
-  int blockoffset = (address & OFFSET_MASK);
+  int block_address = ((address >> Ioffset) & Iblockmask); //get block address
+  unsigned int tag = (address >> Ioffset >> Iindex); //get tag
+  int blockoffset = (address & offsetmask);
   iPenalty = ((BLOCK_WORDS-1) - blockoffset)*2;
 
   if(DEBUG){printf("Block: %i\nTag: %i\nBlock Offset: %i\n", block_address,tag,blockoffset);}
@@ -174,11 +226,8 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
   else //cache miss
   {
     cache->misses++;
-    cache->reads++; //memory read
-    //perform main memory read
-    //block size of 1, grab 1 word and put in cache
-    //block size of 4, grab the 4 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
-    //block size of 16, grab the 16 words with same block and tag, but stop at offset you want and let pipeline run the get other reads come when memory isnt busy
+    cache->reads++;
+
     if(BLOCK_WORDS != 0)
     {
       for(i=blockoffset;i>=0;i--) //going from offset to zero, putting only what you need in cache
@@ -187,8 +236,6 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
         minus++;
       }
         cycleCount = cycleCount + 8 + (((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset))*2);
-        //printf("8 + %i\n",(((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset))*2));
-        //printf("cycleCountbefore = %i\n",cycleCount);
         oldCount_iRead = cycleCount;
         oldBlockaddress_i = block_address;
         oldBlockoffset_i = blockoffset;
@@ -207,9 +254,45 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
   int plus = 0;
   int minus = 0;
   /* Check inputs */
-  if(cache == NULL){
-    printf("Put in a real cache.\n");
-    return 0;}
+  if(cache == NULL){printf("Put in a real cache.\n");return 0;}
+
+  int Doffset = blockoffset(BLOCK_WORDS);
+  unsigned int Dblockmask = blockindexmask(BLOCK_WORDS,D_CACHE_SIZE);
+  int Dindex = blockindexoffset(BLOCK_WORDS,D_CACHE_SIZE);
+  unsigned int offsetmask = blockoffsetmask(BLOCK_WORDS);
+
+  int block_address = ((address >> Doffset) & Dblockmask); //get block address
+  unsigned int tag = (address >> Doffset >> Dindex); //get tag
+  int blockoffset = (address & offsetmask);
+  dPenalty = ((BLOCK_WORDS-1) - blockoffset)*2;
+
+//start of WB fill
+    if(cache->write_policy == 1)
+    {
+      diff = cycleCount - oldCount_dRead1;
+      if(diff >= dPenalty)
+      {
+        for(i=oldBlockoffset_d1;i<BLOCK_WORDS;i++) //going from offset to offset size
+        {
+          cache->blocks[oldBlockaddress_d1]->boffset[oldBlockoffset_d1+plus]->data = memory[oldAddress_d1+plus];
+          plus++;
+        }
+        plus = 0;
+        dPenalty = 0;
+      }
+      if(diff < dPenalty)
+      {
+        cycleCount = cycleCount + diff;
+        for(i=oldBlockoffset_d1;i<BLOCK_WORDS;i++) //going from offset to offset size
+        {
+          cache->blocks[oldBlockaddress_d1]->boffset[oldBlockoffset_d1+plus]->data = memory[oldAddress_d1+plus];
+          plus++;
+        }
+        plus = 0;
+        dPenalty = 0;
+      }
+  }
+//end of WB fill
 
 if(cache->write_policy == 0)
 {
@@ -237,18 +320,12 @@ if(cache->write_policy == 0)
   }
 }
 
-  int block_address = ((address >> D_OFFSET) & D_BLOCK_MASK); //get block address
-  unsigned int tag = (address >> D_OFFSET >> D_INDEX); //get tag
-  int blockoffset = (address & OFFSET_MASK);
-  dPenalty = ((BLOCK_WORDS-1) - blockoffset)*2;
-
   if(DEBUG){printf("BLOCK ADDRESS: %i\nTAG: %i\n", block_address,tag);}
 
   if(cache->blocks[block_address]->valid == 1 && cache->blocks[block_address]->tag == tag)
   {
     cache->hits++;
     return cache->blocks[block_address]->boffset[blockoffset]->data;
-    //take data with correct offset from cache and use it
   }
   else //cache miss
   {
@@ -257,34 +334,46 @@ if(cache->write_policy == 0)
 
     if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 1) //check to see if data in cache is dirty
     {
-      //memory[address] = cache->blocks[block_address]->boffset[blockoffset]->data; //put old data from cache into main memory
       cache->blocks[block_address]->dirty = 0; //mark data as not dirty dirty
-      //perform main memory read, will change for different block sizes
-      cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from memory into cache
-      cycleCount = cycleCount + 8;
+      for(i=blockoffset;i>=0;i--) //put new data into cache
+      {
+        cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from memory into cache
+        minus++;
+      }
+      cycleCount = cycleCount + 6 + ((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset)*2);
+      oldCount_dRead1 = cycleCount;
+      oldBlockaddress_d1 = block_address;
+      oldBlockoffset_d1 = blockoffset;
+      oldAddress_d1 = address;
+      WB_full = false; //buffer is emptied
     }
     else if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 0)
     {
-      //memory[oldAddress_WB] = cache->blocks[block_address]->boffset[blockoffset]->data; //put old data from cache into main memory
-      cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from memory into cache
-      cycleCount = cycleCount + 8;
+      for(i=blockoffset;i>=0;i--) //put data in memory
+      {
+        cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from memory into cache
+        minus++;
+      }
+      WB_full = true;
+      //cycleCount = cycleCount + 6 + ((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset)*2);
+      oldCount_dRead1 = cycleCount;
+      oldBlockaddress_d1 = block_address;
+      oldBlockoffset_d1 = blockoffset;
+      oldAddress_d1 = address;
     }
     else if(cache->write_policy == 0)
     {
       //perform main memory read
-      if(BLOCK_WORDS != 0)
+      for(i=blockoffset;i>=0;i--)
       {
-        for(i=blockoffset;i>=0;i--)
-        {
-          cache->blocks[block_address]->boffset[blockoffset-minus]->data = memory[address-minus];
-          minus++;
-        }
-        cycleCount = cycleCount + 6 + ((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset)*2);
-        oldCount_dRead = cycleCount;
-        oldBlockaddress_d = block_address;
-        oldBlockoffset_d = blockoffset;
-        oldAddress_d = address;
+        cache->blocks[block_address]->boffset[blockoffset-minus]->data = memory[address-minus];
+        minus++;
       }
+      cycleCount = cycleCount + 6 + ((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset)*2);
+      oldCount_dRead = cycleCount;
+      oldBlockaddress_d = block_address;
+      oldBlockoffset_d = blockoffset;
+      oldAddress_d = address;
     }
     cache->blocks[block_address]->valid = 1;
     cache->blocks[block_address]->tag = tag;
@@ -297,9 +386,14 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
   /* Validate inputs */
   if(cache == NULL){printf("Put in a real cache.\n");return 0;}
 
-  int block_address = ((address >> D_OFFSET) & D_BLOCK_MASK); //get block address
-  unsigned int tag = (address >> D_OFFSET >> D_INDEX); //get tag
-  int blockoffset = (address & OFFSET_MASK);
+  int Doffset = blockoffset(BLOCK_WORDS);
+  unsigned int Dblockmask = blockindexmask(BLOCK_WORDS,D_CACHE_SIZE);
+  int Dindex = blockindexoffset(BLOCK_WORDS,D_CACHE_SIZE);
+  unsigned int offsetmask = blockoffsetmask(BLOCK_WORDS);
+
+  int block_address = ((address >> Doffset) & Dblockmask); //get block address
+  unsigned int tag = (address >> Doffset >> Dindex); //get tag
+  int blockoffset = (address & offsetmask);
 
   if(DEBUG){printf("BLOCK ADDRESS: %i\tTAG: %i\tOFFSET: %i\n",block_address,tag,blockoffset);}
 
@@ -307,7 +401,8 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
   {
     cache->blocks[block_address]->boffset[blockoffset]->data = data; //put new data in cache
     cache->blocks[block_address]->tag = tag; //change tag
-    memory[address] = data;
+    memory[address] = data; //putting dirty data in "buffer"
+    WB_full = true; //put data in buffer
   }
 
   if(cache->write_policy == 1 && cache->blocks[block_address]->dirty == 0)
@@ -324,24 +419,19 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data)
     {
       cache->blocks[block_address]->boffset[blockoffset]->data = data;//put new data in cache
       cache->blocks[block_address]->tag = tag; //change tag
-      //if(diff >= 6 && WT_full == true)
-      //{
-        //printf("oldAddress: %i\n",oldAddress_WT);
-        //memory[oldAddress_WT] = WT_[0]; //put buffer data in main memory
-        //WT_full = false; //buffer is now empty
-      //}
+      if(diff >= 6 && WT_full == true)
+      {
+        //put buffer data in main memory
+        WT_full = false; //buffer is now empty
+      }
       if(diff < 6 && WT_full == true)
       {
-        //memory[oldAddress_WT] = WT_[0];
         cycleCount = cycleCount + diff; //add penalty for memory write
-        //WT_full = false; //buffer is now empty
+        WT_full = false; //empty buffer into memory
       }
       memory[address] = data;
-      //WT_[0] = data; //put new data in buffer
-      //printf("WT BUFFER: %i\n",WT_[0]);
-      //WT_full = true; //mark buffer as full
+      WT_full = true; //mark buffer as full
       oldCount_WT = cycleCount;
-      //oldAddress_WT = address;
     }
 
   cache->writes++;
@@ -384,37 +474,3 @@ int PrintCache(Cache cache)
   }
     return 0;
 }
-
-
-/*
-int main()
-{
-  Cache iCache;
-  Cache d_Cache;
-
-  unsigned int data1 = 0x77654321;
-  unsigned int data2 = 0x73656383;
-  unsigned int address1 = 0x8764444;
-  signed int address2 = 0x00054321;
-  unsigned int address3 = 0x58354321;
-  //unsigned int address4 = 0x52554444;
-
-  iCache = CreateCache(I_CACHE_SIZE);
-  d_Cache = CreateCache(D_CACHE_SIZE);
-  iCacheRead(iCache, address3, data2);
-  iCacheRead(iCache, address3, data2);
-  iCacheRead(iCache, address1, data1);
-
-  printf("iCache\n");
-  PrintCache(iCache);
-
-  d_WriteCache(d_Cache, address1, data1);
-  d_WriteCache(d_Cache, address2, data2);
-  d_CacheRead(d_Cache, address3, data2);
-  d_CacheRead(d_Cache, address1, data1);
-
-  printf("d_Cache\n");
-  PrintCache(d_Cache);
-}
-
-*/
