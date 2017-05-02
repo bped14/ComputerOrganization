@@ -188,7 +188,6 @@ unsigned int iCacheRead(Cache cache, unsigned int address)
     return 0;
   }
     diff = cycleCount - oldCount_iRead;
-    //printf("cyclCountafter = %i\n",cycleCount);
     if(diff >= iPenalty)
     {
       for(i=oldBlockoffset_i;i<BLOCK_WORDS;i++) //going from offset to offset size
@@ -253,6 +252,7 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
   int i = 0;
   int plus = 0;
   int minus = 0;
+
   /* Check inputs */
   if(cache == NULL){printf("Put in a real cache.\n");return 0;}
 
@@ -266,8 +266,7 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
   int blockoffset = (address & offsetmask);
   dPenalty = ((BLOCK_WORDS-1) - blockoffset)*2;
 
-//start of WB fill
-    if(cache->write_policy == 1)
+    if(cache->write_policy == 1) //Start of WB fill
     {
       diff = cycleCount - oldCount_dRead1;
       if(diff >= dPenalty)
@@ -291,10 +290,9 @@ unsigned int d_CacheRead(Cache cache, unsigned int address)
         plus = 0;
         dPenalty = 0;
       }
-  }
-//end of WB fill
+  } //end of WB fill
 
-if(cache->write_policy == 0)
+if(cache->write_policy == 0) //Start WT fill
 {
   diff = cycleCount - oldCount_dRead;
   if(diff >= dPenalty)
@@ -318,7 +316,7 @@ if(cache->write_policy == 0)
     plus = 0;
     dPenalty = 0;
   }
-}
+} //End WT fill
 
   if(DEBUG){printf("BLOCK ADDRESS: %i\nTAG: %i\n", block_address,tag);}
 
@@ -340,7 +338,8 @@ if(cache->write_policy == 0)
         cache->blocks[block_address]->boffset[blockoffset]->data = memory[address]; //put data from memory into cache
         minus++;
       }
-      cycleCount = cycleCount + 6 + ((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset)*2);
+      cycleCount = cycleCount + 6 + ((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset)*2); //penalty for buffer fill to memory
+      cycleCount = cycleCount + 8 + ((blockoffset+1)*2); //penalty for memory read
       oldCount_dRead1 = cycleCount;
       oldBlockaddress_d1 = block_address;
       oldBlockoffset_d1 = blockoffset;
@@ -355,7 +354,6 @@ if(cache->write_policy == 0)
         minus++;
       }
       WB_full = true;
-      //cycleCount = cycleCount + 6 + ((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset)*2);
       oldCount_dRead1 = cycleCount;
       oldBlockaddress_d1 = block_address;
       oldBlockoffset_d1 = blockoffset;
@@ -369,7 +367,7 @@ if(cache->write_policy == 0)
         cache->blocks[block_address]->boffset[blockoffset-minus]->data = memory[address-minus];
         minus++;
       }
-      cycleCount = cycleCount + 6 + ((BLOCK_WORDS-1)-((BLOCK_WORDS-1)-blockoffset)*2);
+      cycleCount = cycleCount + 8 + ((blockoffset+1)*2);
       oldCount_dRead = cycleCount;
       oldBlockaddress_d = block_address;
       oldBlockoffset_d = blockoffset;

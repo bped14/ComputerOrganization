@@ -3,15 +3,16 @@
 #ifndef CACHE_H
 #define CACHE_H
 
-#define DEBUG 0 /* for when you want to print debug messages */
-
-/* THINGS THAT NEED TO CHANGE */
-#define PROGRAM 2 //choose program to calculate correct CPI
-#define I_CACHE_SIZE 64
-#define D_CACHE_SIZE 32
+/* VARIABLES TO CHANGE */
+#define PROGRAM 1 //choose program to calculate correct CPI
+#define I_CACHE_SIZE 32 //size in words
+#define D_CACHE_SIZE 64 //size in words
 #define WRITE_POLICY 0 //0 == WT and 1 == WB
-#define BLOCK_WORDS 1 //how many words you want in block
+#define BLOCK_WORDS 16 //how many words you want in block
 #define INSTRUCTION_COUNT3 0 //ENTER amouont of intructions for program 3 to calculate correct CPI
+
+
+
 
 /* Typedefs */
 typedef struct Cache_* Cache;
@@ -55,15 +56,17 @@ int d_WriteCache(Cache cache, unsigned int address, unsigned int data);
 int PrintCache(Cache cache);
 
 /* Calculate block index offset*/
-int blockindexoffset(int block_size, int cache_size); //D_INDEX, I_INDEX
+int blockindexoffset(int block_size, int cache_size);
 
 /* Calculate block index mask */
 unsigned int blockindexmask(int block_size, int cache_size);
 
 /* Calculate block offset */
-int blockoffset(int block_size); //D_OFFSET, I_OFFSET
+int blockoffset(int block_size);
 
 /* Calculate block offset mask */
 unsigned int blockoffsetmask(int block_size);
+
+#define DEBUG 0
 
 #endif

@@ -7,7 +7,6 @@ unsigned int memory[memory_size];
 
 unsigned int program_image[memory_size] = {
 //START PROGRAM 1//////////////////////////////////////////////////
-/*
 	0x00000bb8,	//	$sp = 3000
 	0x00000bb8,	//	$fp = 3000
 	0x00000000,
@@ -501,10 +500,10 @@ unsigned int program_image[memory_size] = {
 	0x00f0f000,
 	0x0f0f0000,
 	0x0000e000,
-	*/
 //END PROGRAM 1////////////////////////////////////////////////////
 
 //START PROGRAM 2/////////////////////////////////////////////////
+/*
 	0x00000898,	// $sp = 2200
 	0x00000898,	// $fp = 2200
 	0x00000320,	// data segment pointer used by the program
@@ -777,6 +776,7 @@ unsigned int program_image[memory_size] = {
 	0x73204361,   // 	s Ca
 	0x65736172,   // 	esar
 	0x00000000,   // 	nop
+	*/
 //END PROGRAM 2////////////////////////////////////////////////////
 };
 
