@@ -1492,20 +1492,21 @@ int main(){
     cpi = (cycleCount/instructions);
     printf("\tCPI: %f\n",cpi);
 
-    if(reg[fp] == 3000){
+    if(reg[fp] == 2200){
+
+        printf("\n\nRESULTS:\n\n");
+        printf("Memory Location 6 :   %d\n", memory[6]);
+        printf("Memory Location 7 :   0x%08x\n", memory[7]);
+        printf("Memory Location 8 :   0x%08x\n", memory[8]);
+        printf("Memory Location 9 :   0x%08x\n", memory[9]);
+        printf("Cycle Count:          %i\n", cycleCount);
+    } else {
         printf("\n\nRESULTS:\n\n");
         printf("Memory Location 6 :   %d\n", memory[6]);
         printf("Memory Location 7 :   %d\n", memory[7]);
         printf("Memory Location 8 :   %d\n", memory[8]);
         printf("Memory Location 9 :   %d\n", memory[9]);
         printf("Cycle Count:          %i\n", cycleCount);
-    } else if(reg[fp] == 2200){
-        printf("\n\nRESULTS:\n\n");
-        printf("Memory Location 6 :   %d\n", memory[6]);
-        printf("Memory Location 7 :   0x%08x\n", memory[7]);
-        printf("Memory Location 8 :   0x%08x\n", memory[8]);
-        printf("Memory Location 9 :   0x%08x\n", memory[9]);
-        printf("Cycle Count:             %i\n", cycleCount);
     }
 
     return 0;

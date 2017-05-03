@@ -71,8 +71,6 @@ unsigned int blockoffsetmask(int block_size)
     case 16:
       mask = 0x0000000f;
       break;
-    default:
-      break;
   }
   return mask;
 }
