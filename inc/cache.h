@@ -4,11 +4,11 @@
 #define CACHE_H
 
 /* VARIABLES TO CHANGE */
-#define PROGRAM 1 //choose program to calculate correct CPI
+#define PROGRAM 2 //choose program to calculate correct CPI
 #define I_CACHE_SIZE 32 //size in words
 #define D_CACHE_SIZE 64 //size in words
-#define WRITE_POLICY 0 //0 == WT and 1 == WB
-#define BLOCK_WORDS 16 //how many words you want in block
+#define WRITE_POLICY 1 //0 == WT and 1 == WB
+#define BLOCK_WORDS 1 //how many words you want in block
 #define INSTRUCTION_COUNT3 0 //ENTER amouont of intructions for program 3 to calculate correct CPI
 
 
